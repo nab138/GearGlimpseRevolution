@@ -2,4 +2,4 @@
 
 A little experiment for native iOS app development on linux.
 
-Powered by [theos](theos.dev)
+Powered by [theos](https://theos.dev)
