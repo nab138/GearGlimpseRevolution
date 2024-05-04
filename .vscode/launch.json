@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "name": "Attach",
+      "type": "lldb",
+      "request": "custom",
+      "sourceLanguages": ["swift"],
+      "targetCreateCommands": [
+        "settings set symbols.enable-lldb-index-cache true",
+        "platform select remote-ios",
+        "target create --no-dependents ${workspaceFolder:theos-test}/.theos/obj/debug/GearGlimpseRevolution.app/GearGlimpseRevolution"
+      ],
+      "processCreateCommands": [
+        "process connect connect://localhost:1234",
+        "process attach --waitfor",
+        "cont"
+      ]
+    }
+  ]
+}
