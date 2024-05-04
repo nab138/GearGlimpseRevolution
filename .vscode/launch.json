@@ -6,14 +6,13 @@
       "request": "custom",
       "sourceLanguages": ["swift"],
       "targetCreateCommands": [
-        "settings set symbols.enable-lldb-index-cache true",
         "platform select remote-ios",
-        "target create --no-dependents ${workspaceFolder:theos-test}/.theos/obj/debug/GearGlimpseRevolution.app/GearGlimpseRevolution"
+        "target create --no-dependents ${workspaceFolder:theos-test}/.theos/obj/debug/GearGlimpseRevolution.app/GearGlimpseRevolution",
+        "script lldb.target.module[0].SetPlatformFileSpec(lldb.SBFileSpec('/private/var/containers/Bundle/Application/BC0624A9-8124-4084-A76A-BE8ADF3F98A8/GearGlimpseRevolution.app'))"
       ],
       "processCreateCommands": [
-        "process connect connect://localhost:1234",
-        "process attach --waitfor",
-        "cont"
+        "process connect connect://[fd0d:e9bc:975f::1]:60171",
+        "process launch"
       ]
     }
   ]
