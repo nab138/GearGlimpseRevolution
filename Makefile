@@ -6,7 +6,7 @@ include $(THEOS)/makefiles/common.mk
 
 APPLICATION_NAME = GearGlimpseRevolution
 
-GearGlimpseRevolution_FILES = AppDelegate.swift RootViewController.swift
+GearGlimpseRevolution_FILES = AppDelegate.swift RootViewController.swift src/*.swift
 GearGlimpseRevolution_FRAMEWORKS = UIKit CoreGraphics
 
 include $(THEOS_MAKE_PATH)/application.mk
