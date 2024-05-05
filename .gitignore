@@ -2,3 +2,4 @@
 packages/
 .DS_Store
 packages_archive/
+*.dae
