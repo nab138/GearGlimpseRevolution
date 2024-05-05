@@ -3,7 +3,7 @@ import ARKit
 import SceneKit
 import SceneKit.ModelIO
 
-class RootViewController: UIViewController {
+class RootViewController: UIViewController, UIGestureRecognizerDelegate {
     var sceneView: ARSceneView!
     var fieldNode: SCNNode!
 
@@ -22,7 +22,6 @@ class RootViewController: UIViewController {
         configuration.planeDetection = .horizontal
         sceneView.session.run(configuration)
 
-        NSLog("loading field model")
         guard let field = sceneView.loadModelFromName("Field3d_2024") else {
             NSLog("Failed to load field model")
             return
@@ -32,15 +31,22 @@ class RootViewController: UIViewController {
         NSLog("Field loaded successfully")
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        tapGestureRecognizer.delegate = self
         sceneView.addGestureRecognizer(tapGestureRecognizer)
 
         let rotateGestureRecognizer = UIRotationGestureRecognizer(target: self, action: #selector(handleRotate))
+        rotateGestureRecognizer.delegate = self
         sceneView.addGestureRecognizer(rotateGestureRecognizer)
 
         let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch))
+        pinchGestureRecognizer.delegate = self
         sceneView.addGestureRecognizer(pinchGestureRecognizer)
 
         sceneView.scene.rootNode.addChildNode(fieldNode)
+    }
+
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
     }
 
     override func viewWillDisappear(_ animated: Bool) {
