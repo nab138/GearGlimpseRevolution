@@ -1,6 +1,6 @@
 # GearGlimpse Revolution
 
-A little experiment for native iOS app development on linux.
+iOS AR Frc tools!
 
 Powered by [theos](https://theos.dev)
 

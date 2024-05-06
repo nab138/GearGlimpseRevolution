@@ -16,6 +16,11 @@ extension RootViewController {
 
         let position = SCNVector3(result.worldTransform.columns.3.x, result.worldTransform.columns.3.y, result.worldTransform.columns.3.z)
         fieldNode.position = position
+
+        if(!hasPlacedField){
+            sceneView.scene.rootNode.addChildNode(fieldNode)
+            hasPlacedField = true
+        }
     }
 
     @objc func handleRotate(sender: UIRotationGestureRecognizer) {

@@ -7,6 +7,10 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
     var sceneView: ARSceneView!
     var fieldNode: SCNNode!
 
+    var hasPlacedField = false
+
+    var NetworkTablesClient: NT4Client!
+
     override func loadView() {
         super.loadView()
 
@@ -42,7 +46,19 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         pinchGestureRecognizer.delegate = self
         sceneView.addGestureRecognizer(pinchGestureRecognizer)
 
-        sceneView.scene.rootNode.addChildNode(fieldNode)
+        NetworkTablesClient = NT4Client(appName: "ARKit", serverBaseAddr: "192.168.1.130", onTopicAnnounce: { topic in
+            NSLog("Announced topic: \(topic.name)")
+        }, onTopicUnannounce: { topic in
+            NSLog("Unannounced topic: \(topic.name)")
+        }, onNewTopicData: { topic, uid, data in
+            NSLog("New data for topic \(topic.name): \(data)")
+        }, onConnect: {
+            NSLog("Connected to NetworkTables")
+        }, onDisconnect: {
+            NSLog("Disconnected from NetworkTables")
+        })
+
+        NetworkTablesClient.connect()
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -58,5 +74,11 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         super.viewWillTransition(to: size, with: coordinator)
 
         sceneView.frame = CGRect(origin: .zero, size: size)
+    }
+
+    // When the app is brought to the foreground, resume the WS connection
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        NetworkTablesClient.connect()
     }
 }
