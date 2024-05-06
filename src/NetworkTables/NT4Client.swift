@@ -106,10 +106,14 @@ class NT4Client: WebSocketDelegate {
 
     private func wsSendTimestamp(){
         // Send the timestamp (convert using MessagePack) in the format: -1, 0, type, timestamp
-        let timestamp = NT4Client.getClientTimeUS()
-        var data = Data()
-        data.pack(-1, 0, NT4Client.getClientTimeUS(), timestamp)
-        wsSendBinary(data: data)
+        do {
+            let timestamp = NT4Client.getClientTimeUS()
+            var data = Data()
+            try data.pack(-1, 0, NT4Client.getClientTimeUS(), timestamp)
+            wsSendBinary(data: data)
+        } catch {
+            NSLog("Failed to encode timestamp")
+        }
     }
 
     private func wsSendBinary(data: Data) {
