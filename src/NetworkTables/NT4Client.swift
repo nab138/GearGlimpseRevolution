@@ -65,7 +65,7 @@ class NT4Client: WebSocketDelegate {
                 if let data = string.data(using: .utf8) {
                     if let msg = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
                         if msg == nil {
-                            print("[NT4] Failed to decode JSON message: \(string)")
+                            NSLOG("[NT4] Failed to decode JSON message: \(string)")
                             return
                         }
                         // Iterate through the messages
@@ -74,7 +74,7 @@ class NT4Client: WebSocketDelegate {
                             // Attempt to decode the message as a JSON object
                             if let msgObj = try? JSONSerialization.jsonObject(with: objStr.data(using: .utf8)!, options: []) as? [String: Any] {
                                 if msgObj == nil {
-                                    print("[NT4] Failed to decode JSON message: \(obj)")
+                                    NSLOG("[NT4] Failed to decode JSON message: \(obj)")
                                     continue
                                 }
                                 // Handle the message
@@ -85,7 +85,16 @@ class NT4Client: WebSocketDelegate {
                 }
 
             case .binary(let data):
-                NSLog("Received data: \(data.count)")
+                do {
+                    let decodedObj: [Any]? = try data.unpack()
+                    if decodedObj == nil {
+                        NSLog("Failed to unpack data")
+                        return
+                    }
+                    handleMsgPackMessage(msg: decodedObj)
+                } catch {
+                    NSLog("Something went wrong while unpacking data: \(error)")
+                }
             case .ping(_):
                 break
             case .pong(_):
@@ -112,12 +121,56 @@ class NT4Client: WebSocketDelegate {
             if let params = msg["params"] as? [String: Any] {
                 switch method {
                     case "announce":
+                        let newTopic = NTTopic(data: params)
+                        serverTopics[topic.name] = topic
+                        onTopicAnnounce(newTopic)
                         NSLog("Announce: \(params)")
                     default:
                         NSLog("Unknown method: \(method)")
                 }
             }
         }
+    }
+
+    private func handleMsgPackMessage(msg: [Any]){
+        let topicID = msg[0] as! Int
+        let timestamp = msg[1] as! Int
+        let data = msg[2]
+
+        if topicID >= 0 {
+            var topic: NTTopic? = nil
+            // Check to see if the topic ID matches any of the server topics
+            for serverTopic in serverTopics.values {
+                if serverTopic.uid == topicID {
+                    topic = serverTopic
+                    break
+                }
+            }
+            // If the topic is not found, return
+            guard let topic = topic else { return }
+            onNewTopicData?(topic, timestamp, value)
+        } else if topicID == -1 {
+            // Handle receive timestamp
+            wsHandleReceiveTimestamp(timestamp, Int64(value))
+        }
+    }
+
+    private func wsHandleReceiveTimestamp(serverTimestamp: Int64, clientTimestamp: Int64) {
+        let rxTime = NT4Client.getClientTimeUS()
+
+        // Recalculate server/client offset based on round trip time
+        let rtt = rxTime - clientTimestamp
+        networkLatency_us = rtt / 2
+        let serverTimeAtRx = serverTimestamp + networkLatency_us
+        serverTimeOffset_us = serverTimeAtRx - rxTime
+
+        print(
+            "[NT4] New server time: " +
+            String(Double(getServerTimeUs()) / 1000000.0) +
+            "s with " +
+            String(Double(networkLatency_us) / 1000.0) +
+            "ms latency"
+        )
     }
 
     private func wsSendTimestamp(){
@@ -142,7 +195,7 @@ class NT4Client: WebSocketDelegate {
         if serverConnectionActive {
             // send {"method": "method", "params": "params}
             do {
-                let jsonData = try JSONSerialization.data(withJSONObject: params, options: .prettyPrinted)
+                let jsonData = try JSONSerialization.data(withJSONObject: params, options: .prettyNSLOGed)
                 ws?.write(string: "{\"method\":\"\(method)\",\"params\":\(String(data: jsonData, encoding: .utf8)!)}")
             } catch {
                 NSLog("Failed to encode JSON")

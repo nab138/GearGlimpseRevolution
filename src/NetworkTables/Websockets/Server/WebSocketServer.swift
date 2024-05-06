@@ -55,17 +55,17 @@ public class WebSocketServer: Server, ConnectionDelegate {
 //        listener.stateUpdateHandler = { state in
 //            switch state {
 //            case .ready:
-//                print("ready to get sockets!")
+//                NSLOG("ready to get sockets!")
 //            case .setup:
-//                print("setup to get sockets!")
+//                NSLOG("setup to get sockets!")
 //            case .cancelled:
-//                print("server cancelled!")
+//                NSLOG("server cancelled!")
 //            case .waiting(let error):
-//                print("waiting error: \(error)")
+//                NSLOG("waiting error: \(error)")
 //            case .failed(let error):
-//                print("server failed: \(error)")
+//                NSLOG("server failed: \(error)")
 //            @unknown default:
-//                print("wat?")
+//                NSLOG("wat?")
 //            }
 //        }
         self.listener = listener
@@ -124,7 +124,7 @@ public class ServerConnection: Connection, HTTPServerDelegate, FramerEventClient
         case .waiting:
             break
         case .failed(let error):
-            print("server connection error: \(error ?? WSError(type: .protocolError, message: "default error, no extra data", code: 0))") //handleError(error)
+            NSLOG("server connection error: \(error ?? WSError(type: .protocolError, message: "default error, no extra data", code: 0))") //handleError(error)
         case .viability(_):
             break
         case .shouldReconnect(_):
@@ -136,7 +136,7 @@ public class ServerConnection: Connection, HTTPServerDelegate, FramerEventClient
                 httpHandler.parse(data: data)
             }
         case .cancelled:
-            print("server connection cancelled!")
+            NSLOG("server connection cancelled!")
             //broadcast(event: .cancelled)
         case .peerClosed:
             delegate?.didReceive(event: .disconnected(self, "Connection closed by peer", UInt16(FrameOpCode.connectionClose.rawValue)))

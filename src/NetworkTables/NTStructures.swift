@@ -57,6 +57,39 @@ class NTTopic {
     var type: String = ""
     var properties: [String: Any] = [:]
 
+    init(uid: Int, name: String, type: String, properties: [String: Any]) {
+        self.uid = uid
+        self.name = name
+        self.type = type
+        self.properties = properties
+    }
+
+    init(data: [String: Any]){
+        if let id = data["id"] as? Int {
+            uid = id
+        } else if let id = data["pubuid"] as? Int {
+            uid = id
+        } else {
+            NSLog("Error: Topic does not have an id")
+        }
+        if let n = data["name"] as? String {
+            name = n
+        } else {
+            NSLog("Error: Topic does not have a name")
+        }
+        if let t = data["type"] as? String {
+            type = t
+        } else {
+            NSLog("Error: Topic does not have a type")
+        }
+        if let p = data["properties"] as? [String: Any] {
+            properties = p
+        } else {
+            NSLog("Error: Topic does not have properties")
+        }
+    }
+    
+
     func toPublishObj() -> [String: Any] {
         return [
             "name": name,
