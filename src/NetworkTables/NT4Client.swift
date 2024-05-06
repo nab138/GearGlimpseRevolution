@@ -107,7 +107,7 @@ class NT4Client: WebSocketDelegate {
     private func wsSendTimestamp(){
         // Send the timestamp (convert using MessagePack) in the format: -1, 0, type, timestamp
         let timestamp = NT4Client.getClientTimeUS()
-        let data = Data()
+        var data = Data()
         data.pack(-1, 0, NT4Client.getClientTimeUS(), timestamp)
         wsSendBinary(data: data)
     }
