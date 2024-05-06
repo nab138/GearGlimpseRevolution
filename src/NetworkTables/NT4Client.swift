@@ -78,7 +78,7 @@ class NT4Client: WebSocketDelegate {
                                     continue
                                 }
                                 // Handle the message
-                                handleJsonMessage(msgObj)
+                                handleJsonMessage(msg: msgObj)
                             }
                         }
                     }
