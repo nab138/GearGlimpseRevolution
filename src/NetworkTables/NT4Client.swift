@@ -63,21 +63,24 @@ class NT4Client: WebSocketDelegate {
                 onDisconnect?(reason, code)
             case .text(let string):
                 if let data = string.data(using: .utf8) {
-                    do {
-                        let json = try JSONSerialization.jsonObject(with: data, options: [])
-                        if let object = json as? [String: Any] {
-                            // json is a dictionary
-                            print(object)
-                        } else if let object = json as? [Any] {
-                            // json is an array
-                            for anItem in object as! [Dictionary<String, AnyObject>] {
-                                print(anItem)
-                            }
-                        } else {
-                            print("JSON is invalid")
+                    if let msg = try? JSONSerialization.jsonObject(with: args.Data, options: []) as? [[String: Any]] {
+                        if msg == nil {
+                            print("[NT4] Failed to decode JSON message: \(message)")
+                            return
                         }
-                    } catch {
-                        print("Failed to decode JSON: \(error)")
+                        // Iterate through the messages
+                        for obj in msg {
+                            let objStr = String(describing: obj)
+                            // Attempt to decode the message as a JSON object
+                            if let msgObj = try? JSONSerialization.jsonObject(with: objStr.data(using: .utf8)!, options: []) as? [String: Any] {
+                                if msgObj == nil {
+                                    print("[NT4] Failed to decode JSON message: \(obj)")
+                                    continue
+                                }
+                                // Handle the message
+                                handleJsonMessage(msgObj)
+                            }
+                        }
                     }
                 }
 
@@ -102,6 +105,19 @@ class NT4Client: WebSocketDelegate {
                 case .peerClosed:
                     break
 	    }
+    }
+
+    private func handleJsonMessage(msg: [String: Any]) {
+        if let method = msg["method"] as? String {
+            if let params = msg["params"] as? [String: Any] {
+                switch method {
+                    case "announce":
+                        NSLog("Announce: \(params)")
+                    default:
+                        NSLog("Unknown method: \(method)")
+                }
+            }
+        }
     }
 
     private func wsSendTimestamp(){
