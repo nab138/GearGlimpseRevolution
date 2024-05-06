@@ -63,9 +63,9 @@ class NT4Client: WebSocketDelegate {
                 onDisconnect?(reason, code)
             case .text(let string):
                 if let data = string.data(using: .utf8) {
-                    if let msg = try? JSONSerialization.jsonObject(with: args.Data, options: []) as? [[String: Any]] {
+                    if let msg = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
                         if msg == nil {
-                            print("[NT4] Failed to decode JSON message: \(message)")
+                            print("[NT4] Failed to decode JSON message: \(string)")
                             return
                         }
                         // Iterate through the messages
