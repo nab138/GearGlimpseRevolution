@@ -54,8 +54,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
             NSLog("New data for topic \(topic.name): \(data)")
         }, onConnect: {
             NSLog("Connected to NetworkTables")
-        }, onDisconnect: {
-            NSLog("Disconnected from NetworkTables")
+        }, onDisconnect: ((String, UInt16) -> Void)? { reason, code in
+            NSLog("Disconnected from NetworkTables, reason: \(reason), code: \(code)")
         })
 
         NetworkTablesClient.connect()
