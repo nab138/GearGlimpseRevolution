@@ -15,6 +15,9 @@ jobs:
 
       - name: Setup Theos
         uses: nab138/theos-action@main
+        with:
+          cache-dir-theos: ${{ github.workspace }}/theos
+          cache-dir-sdks: ${{ github.workspace }}/theos/sdks
 
       - name: Build
         run: |
