@@ -56,6 +56,7 @@ class NT4Client: WebSocketDelegate {
         switch event {
             case .connected(_):
                 serverConnectionActive = true
+                wsSendTimestamp()
                 onConnect?()
             case .disconnected(let reason, let code):
                 serverConnectionActive = false
@@ -101,6 +102,44 @@ class NT4Client: WebSocketDelegate {
                 case .peerClosed:
                     break
 	    }
+    }
+
+    private func wsSendTimestamp(){
+        // Send the timestamp (convert using MessagePack) in the format: -1, 0, type, timestamp
+        let timestamp = NT4Client.getClientTimeUS()
+        let data = Data()
+        data.pack(-1, 0, NT4Client.getClientTimeUS(), timestamp)
+        wsSendBinary(data: data)
+    }
+
+    private func wsSendBinary(data: Data) {
+        if serverConnectionActive {
+            ws?.write(data: data)
+        }
+    }
+
+    private func wsSendJson(method: String, params: [String: Any]) {
+        if serverConnectionActive {
+            // send {"method": "method", "params": "params}
+            do {
+                let jsonData = try JSONSerialization.data(withJSONObject: params, options: .prettyPrinted)
+                ws?.write(string: "{\"method\":\"\(method)\",\"params\":\(String(data: jsonData, encoding: .utf8)!)}")
+            } catch {
+                NSLog("Failed to encode JSON")
+            }
+        }
+    }
+
+    private static func getClientTimeUS() -> Int {
+        return Int(Date().timeIntervalSince1970 * 1000000)
+    }
+
+    private func getServerTimeUS() -> Int {
+        if serverTimeOffset_us == nil {
+            // TODO: maybe return nil?
+            return 0
+        }
+        return NT4Client.getClientTimeUS() + serverTimeOffset_us!
     }
     
 }
