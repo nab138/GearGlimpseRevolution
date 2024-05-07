@@ -9,7 +9,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
 
     var hasPlacedField = false
 
-    var NetworkTablesClient: NT4Client!
+    var NTClient: NT4Client!
 
     override func loadView() {
         super.loadView()
@@ -46,7 +46,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         pinchGestureRecognizer.delegate = self
         sceneView.addGestureRecognizer(pinchGestureRecognizer)
 
-        NetworkTablesClient = NT4Client(appName: "ARKit", serverBaseAddr: "192.168.1.130", onTopicAnnounce: { topic in
+        NTClient = NT4Client(appName: "ARKit", serverBaseAddr: "192.168.1.130", onTopicAnnounce: { topic in
             NSLog("Announced topic: \(topic.name)")
         }, onTopicUnannounce: { topic in
             NSLog("Unannounced topic: \(topic.name)")
@@ -58,7 +58,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
             NSLog("Disconnected from NetworkTables, reason: \(reason), code: \(code)")
         })
 
-        NetworkTablesClient.connect()
+        NTClient.connect()
+        NTClient.subscribe("/SmartDashboard/Field/Robot")
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {

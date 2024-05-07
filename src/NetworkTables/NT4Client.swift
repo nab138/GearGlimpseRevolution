@@ -27,6 +27,8 @@ class NT4Client: WebSocketDelegate {
     var subscriptions = [Int: NTSubscription]()
     var publishedTopics = [String: NTTopic]()
     var serverTopics = [String: NTTopic]()
+
+    var queuedSubscriptions = [NTSubscription]()
     
     init(appName: String, serverBaseAddr: String, onTopicAnnounce: ((NTTopic) -> Void)?, onTopicUnannounce: ((NTTopic) -> Void)?, onNewTopicData: ((NTTopic, Int64, Any) -> Void)?, onConnect: (() -> Void)?, onDisconnect: ((String, UInt16) -> Void)?) {
         self.appName = appName
@@ -65,8 +67,12 @@ class NT4Client: WebSocketDelegate {
             subscriptions[sub.uid] = sub
             wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
             return sub.uid
+        } else {
+            let options = NTSubscriptionOptions(periodic: periodic, all: all, topicsOnly: topicsOnly, isPrefix: prefix)
+            let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: [key], options: options)
+            queuedSubscriptions.append(sub)
+            return sub.uid
         }
-        return -1
     }
 
     func subscribe(key: String, options: NTSubscriptionOptions) -> Int {
@@ -75,8 +81,11 @@ class NT4Client: WebSocketDelegate {
             subscriptions[sub.uid] = sub
             wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
             return sub.uid
+        } else {
+            let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: [key], options: options)
+            queuedSubscriptions.append(sub)
+            return sub.uid
         }
-        return -1
     }
 
     func subscribe(key: Set<String>, options: NTSubscriptionOptions) -> Int{
@@ -85,8 +94,11 @@ class NT4Client: WebSocketDelegate {
             subscriptions[sub.uid] = sub
             wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
             return sub.uid
+        } else {
+            let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: key, options: options)
+            queuedSubscriptions.append(sub)
+            return sub.uid
         }
-        return -1
     }
 
     func didReceive(event: WebSocketEvent, client: WebSocketClient) {
@@ -95,6 +107,9 @@ class NT4Client: WebSocketDelegate {
                 serverConnectionActive = true
                 wsSendTimestamp()
                 onConnect?()
+                for sub in queuedSubscriptions {
+                    wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
+                }
             case .disconnected(let reason, let code):
                 serverConnectionActive = false
                 onDisconnect?(reason, code)
