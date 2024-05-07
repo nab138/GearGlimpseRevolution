@@ -59,7 +59,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         })
 
         NTClient.connect()
-        NTClient.subscribe("/SmartDashboard/Field/Robot")
+        NTClient.subscribe(key: "/SmartDashboard/Field/Robot")
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
@@ -80,6 +80,6 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
     // When the app is brought to the foreground, resume the WS connection
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        NetworkTablesClient.connect()
+        NTClient.connect()
     }
 }
