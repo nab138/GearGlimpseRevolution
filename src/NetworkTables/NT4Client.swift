@@ -205,7 +205,7 @@ class NT4Client: WebSocketDelegate {
             // TODO: maybe return nil?
             return 0
         }
-        return NT4Client.getClientTimeUS() + Int64(serverTimeOffset_us)!
+        return NT4Client.getClientTimeUS() + Int64(serverTimeOffset_us!)
     }
     
 }
