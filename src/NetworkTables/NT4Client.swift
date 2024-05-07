@@ -86,11 +86,8 @@ class NT4Client: WebSocketDelegate {
 
             case .binary(let data):
                 do {
-                    let decodedObj: [Any]? = try data.unpack()
-                    if decodedObj == nil {
-                        NSLog("Failed to unpack data")
-                        return
-                    }
+                    let decodedObj: [Any]? = try data.unpack() as? [Any]
+                    guard let decodedObj = decodedObj else { return }
                     handleMsgPackMessage(msg: decodedObj)
                 } catch {
                     NSLog("Something went wrong while unpacking data: \(error)")
@@ -122,8 +119,8 @@ class NT4Client: WebSocketDelegate {
                 switch method {
                     case "announce":
                         let newTopic = NTTopic(data: params)
-                        serverTopics[topic.name] = newTopic
-                        onTopicAnnounce(newTopic)
+                        serverTopics[newTopic.name] = newTopic
+                        onTopicAnnounce?(newTopic)
                         NSLog("Announce: \(params)")
                     default:
                         NSLog("Unknown method: \(method)")
@@ -134,7 +131,7 @@ class NT4Client: WebSocketDelegate {
 
     private func handleMsgPackMessage(msg: [Any]){
         let topicID = msg[0] as! Int
-        let timestamp = msg[1] as! Int
+        let timestamp = msg[1] as! Int64
         let data = msg[2]
 
         if topicID >= 0 {
@@ -151,7 +148,7 @@ class NT4Client: WebSocketDelegate {
             onNewTopicData?(topic, timestamp, data)
         } else if topicID == -1 {
             // Handle receive timestamp
-            wsHandleReceiveTimestamp(timestamp, Int64(data as! Int))
+            wsHandleReceiveTimestamp(serverTimestamp: timestamp, clientTimestamp: Int64(data as! Int))
         }
     }
 
