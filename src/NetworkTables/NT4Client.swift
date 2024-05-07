@@ -10,7 +10,7 @@ class NT4Client: WebSocketDelegate {
     var appName: String
     var onTopicAnnounce: ((NTTopic) -> Void)?
     var onTopicUnannounce: ((NTTopic) -> Void)?
-    var onNewTopicData: ((NTTopic, Int, Any) -> Void)?
+    var onNewTopicData: ((NTTopic, Int64, Any) -> Void)?
     var onConnect: (() -> Void)?
     var onDisconnect: ((String, UInt16) -> Void)?
 
@@ -28,7 +28,7 @@ class NT4Client: WebSocketDelegate {
     var publishedTopics = [String: NTTopic]()
     var serverTopics = [String: NTTopic]()
     
-    init(appName: String, serverBaseAddr: String, onTopicAnnounce: ((NTTopic) -> Void)?, onTopicUnannounce: ((NTTopic) -> Void)?, onNewTopicData: ((NTTopic, Int, Any) -> Void)?, onConnect: (() -> Void)?, onDisconnect: ((String, UInt16) -> Void)?) {
+    init(appName: String, serverBaseAddr: String, onTopicAnnounce: ((NTTopic) -> Void)?, onTopicUnannounce: ((NTTopic) -> Void)?, onNewTopicData: ((NTTopic, Int64, Any) -> Void)?, onConnect: (() -> Void)?, onDisconnect: ((String, UInt16) -> Void)?) {
         self.appName = appName
         self.serverBaseAddr = serverBaseAddr
         self.onTopicAnnounce = onTopicAnnounce
@@ -73,10 +73,6 @@ class NT4Client: WebSocketDelegate {
                             let objStr = String(describing: obj)
                             // Attempt to decode the message as a JSON object
                             if let msgObj = try? JSONSerialization.jsonObject(with: objStr.data(using: .utf8)!, options: []) as? [String: Any] {
-                                if msgObj == nil {
-                                    NSLog("[NT4] Failed to decode JSON message: \(obj)")
-                                    continue
-                                }
                                 // Handle the message
                                 handleJsonMessage(msg: msgObj)
                             }
@@ -156,10 +152,10 @@ class NT4Client: WebSocketDelegate {
         let rxTime = NT4Client.getClientTimeUS()
 
         // Recalculate server/client offset based on round trip time
-        let rtt = rxTime - clientTimestamp
+        let rtt = Int(rxTime - clientTimestamp)
         networkLatency_us = rtt / 2
         let serverTimeAtRx = serverTimestamp + Int64(networkLatency_us)
-        serverTimeOffset_us = serverTimeAtRx - rxTime
+        serverTimeOffset_us = Int(serverTimeAtRx - rxTime)
 
         print(
             "[NT4] New server time: " +
@@ -204,12 +200,12 @@ class NT4Client: WebSocketDelegate {
         return Int64(Date().timeIntervalSince1970 * 1000000)
     }
 
-    private func getServerTimeUS() -> Int {
+    private func getServerTimeUS() -> Int64 {
         if serverTimeOffset_us == nil {
             // TODO: maybe return nil?
             return 0
         }
-        return NT4Client.getClientTimeUS() + serverTimeOffset_us!
+        return NT4Client.getClientTimeUS() + Int64(serverTimeOffset_us)!
     }
     
 }

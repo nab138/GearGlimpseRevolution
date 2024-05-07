@@ -50,7 +50,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
             NSLog("Announced topic: \(topic.name)")
         }, onTopicUnannounce: { topic in
             NSLog("Unannounced topic: \(topic.name)")
-        }, onNewTopicData: { topic, uid, data in
+        }, onNewTopicData: { topic, timestamp, data in
             NSLog("New data for topic \(topic.name): \(data)")
         }, onConnect: {
             NSLog("Connected to NetworkTables")
