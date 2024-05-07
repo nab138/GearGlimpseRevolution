@@ -23,7 +23,6 @@
 #if canImport(Network)
 import Foundation
 import Network
-import UIKit
 
 /// WebSocketServer is a Network.framework implementation of a WebSocket server
 @available(watchOS, unavailable)
@@ -56,17 +55,17 @@ public class WebSocketServer: Server, ConnectionDelegate {
 //        listener.stateUpdateHandler = { state in
 //            switch state {
 //            case .ready:
-//                NSLOG("ready to get sockets!")
+//                NSLog("ready to get sockets!")
 //            case .setup:
-//                NSLOG("setup to get sockets!")
+//                NSLog("setup to get sockets!")
 //            case .cancelled:
-//                NSLOG("server cancelled!")
+//                NSLog("server cancelled!")
 //            case .waiting(let error):
-//                NSLOG("waiting error: \(error)")
+//                NSLog("waiting error: \(error)")
 //            case .failed(let error):
-//                NSLOG("server failed: \(error)")
+//                NSLog("server failed: \(error)")
 //            @unknown default:
-//                NSLOG("wat?")
+//                NSLog("wat?")
 //            }
 //        }
         self.listener = listener
@@ -125,7 +124,7 @@ public class ServerConnection: Connection, HTTPServerDelegate, FramerEventClient
         case .waiting:
             break
         case .failed(let error):
-            NSLOG("server connection error: \(error ?? WSError(type: .protocolError, message: "default error, no extra data", code: 0))") //handleError(error)
+            NSLog("server connection error: \(error ?? WSError(type: .protocolError, message: "default error, no extra data", code: 0))") //handleError(error)
         case .viability(_):
             break
         case .shouldReconnect(_):
@@ -137,7 +136,7 @@ public class ServerConnection: Connection, HTTPServerDelegate, FramerEventClient
                 httpHandler.parse(data: data)
             }
         case .cancelled:
-            NSLOG("server connection cancelled!")
+            NSLog("server connection cancelled!")
             //broadcast(event: .cancelled)
         case .peerClosed:
             delegate?.didReceive(event: .disconnected(self, "Connection closed by peer", UInt16(FrameOpCode.connectionClose.rawValue)))

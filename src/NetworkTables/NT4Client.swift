@@ -65,7 +65,7 @@ class NT4Client: WebSocketDelegate {
                 if let data = string.data(using: .utf8) {
                     if let msg = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
                         if msg == nil {
-                            NSLOG("[NT4] Failed to decode JSON message: \(string)")
+                            NSLog("[NT4] Failed to decode JSON message: \(string)")
                             return
                         }
                         // Iterate through the messages
@@ -74,7 +74,7 @@ class NT4Client: WebSocketDelegate {
                             // Attempt to decode the message as a JSON object
                             if let msgObj = try? JSONSerialization.jsonObject(with: objStr.data(using: .utf8)!, options: []) as? [String: Any] {
                                 if msgObj == nil {
-                                    NSLOG("[NT4] Failed to decode JSON message: \(obj)")
+                                    NSLog("[NT4] Failed to decode JSON message: \(obj)")
                                     continue
                                 }
                                 // Handle the message
