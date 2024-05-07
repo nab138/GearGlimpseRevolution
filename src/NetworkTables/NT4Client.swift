@@ -52,6 +52,43 @@ class NT4Client: WebSocketDelegate {
         ws?.connect()
     }
 
+    func disconnect(){
+        if serverConnectionActive {
+            ws?.disconnect()
+        }
+    }
+
+    func subscribe(key: String, periodic: Double = 0.1, all: Bool = false, topicsOnly: Bool = false, prefix: Bool = false) -> Int {
+        if serverConnectionActive {
+            let options = NTSubscriptionOptions(periodic: periodic, all: all, topicsOnly: topicsOnly, isPrefix: prefix)
+            let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: [key], options: options)
+            subscriptions[topic.uid] = sub
+            wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
+            return sub.uid
+        }
+        return -1
+    }
+
+    func subscribe(key: String, options: NTSubscriptionOptions) -> Int {
+        if serverConnectionActive {
+            let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: [key], options: options)
+            subscriptions[topic.uid] = sub
+            wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
+            return sub.uid
+        }
+        return -1
+    }
+
+    func subscribe(key: Set<String>, options: NTSubscriptionOptions) -> Int{
+        if serverConnectionActive {
+            let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: key, options: options)
+            subscriptions[topic.uid] = sub
+            wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
+            return sub.uid
+        }
+        return -1
+    }
+
     func didReceive(event: WebSocketEvent, client: WebSocketClient) {
         switch event {
             case .connected(_):
@@ -157,7 +194,7 @@ class NT4Client: WebSocketDelegate {
         let serverTimeAtRx = serverTimestamp + Int64(networkLatency_us)
         serverTimeOffset_us = Int(serverTimeAtRx - rxTime)
 
-        print(
+        NSLog(
             "[NT4] New server time: " +
             String(Double(getServerTimeUS()) / 1000000.0) +
             "s with " +
@@ -208,4 +245,8 @@ class NT4Client: WebSocketDelegate {
         return NT4Client.getClientTimeUS() + Int64(serverTimeOffset_us!)
     }
     
+    private static func getNewUid() -> Int {
+        // Return a random int
+        return Int.random(in: 0..<10000000)
+    }
 }

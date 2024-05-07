@@ -5,6 +5,12 @@ class NTSubscription {
     var topics = Set<String>()
     var options = NTSubscriptionOptions()
 
+    init(uid: Int, topics: Set<String>, options: NTSubscriptionOptions) {
+        self.uid = uid
+        self.topics = topics
+        self.options = options
+    }
+
     func toSubscribeObj() -> [String: Any] {
         return [
             "topics": Array(topics),
@@ -25,6 +31,15 @@ class NTSubscriptionOptions {
   var all = false;
   var topicsOnly = false;
   var isPrefix = false;
+
+    init() {}
+
+    init(periodic: Double, all: Bool, topicsOnly: Bool, isPrefix: Bool) {
+        self.periodic = periodic
+        self.all = all
+        self.topicsOnly = topicsOnly
+        self.isPrefix = isPrefix
+    }
 
   func toObj()-> [String: Any] {
     return [
