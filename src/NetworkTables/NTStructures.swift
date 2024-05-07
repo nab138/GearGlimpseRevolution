@@ -1,3 +1,5 @@
+import UIKit
+
 class NTSubscription {
     var uid: Int = -1
     var topics = Set<String>()

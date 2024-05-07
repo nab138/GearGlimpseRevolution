@@ -23,6 +23,7 @@
 #if canImport(Network)
 import Foundation
 import Network
+import UIKit
 
 /// WebSocketServer is a Network.framework implementation of a WebSocket server
 @available(watchOS, unavailable)

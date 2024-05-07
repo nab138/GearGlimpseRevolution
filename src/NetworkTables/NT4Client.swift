@@ -122,7 +122,7 @@ class NT4Client: WebSocketDelegate {
                 switch method {
                     case "announce":
                         let newTopic = NTTopic(data: params)
-                        serverTopics[topic.name] = topic
+                        serverTopics[topic.name] = newTopic
                         onTopicAnnounce(newTopic)
                         NSLog("Announce: \(params)")
                     default:
@@ -148,10 +148,10 @@ class NT4Client: WebSocketDelegate {
             }
             // If the topic is not found, return
             guard let topic = topic else { return }
-            onNewTopicData?(topic, timestamp, value)
+            onNewTopicData?(topic, timestamp, data)
         } else if topicID == -1 {
             // Handle receive timestamp
-            wsHandleReceiveTimestamp(timestamp, Int64(value))
+            wsHandleReceiveTimestamp(timestamp, Int64(data as! Int))
         }
     }
 
@@ -161,12 +161,12 @@ class NT4Client: WebSocketDelegate {
         // Recalculate server/client offset based on round trip time
         let rtt = rxTime - clientTimestamp
         networkLatency_us = rtt / 2
-        let serverTimeAtRx = serverTimestamp + networkLatency_us
+        let serverTimeAtRx = serverTimestamp + Int64(networkLatency_us)
         serverTimeOffset_us = serverTimeAtRx - rxTime
 
         print(
             "[NT4] New server time: " +
-            String(Double(getServerTimeUs()) / 1000000.0) +
+            String(Double(getServerTimeUS()) / 1000000.0) +
             "s with " +
             String(Double(networkLatency_us) / 1000.0) +
             "ms latency"
@@ -195,7 +195,7 @@ class NT4Client: WebSocketDelegate {
         if serverConnectionActive {
             // send {"method": "method", "params": "params}
             do {
-                let jsonData = try JSONSerialization.data(withJSONObject: params, options: .prettyNSLOGed)
+                let jsonData = try JSONSerialization.data(withJSONObject: params, options: .prettyPrinted)
                 ws?.write(string: "{\"method\":\"\(method)\",\"params\":\(String(data: jsonData, encoding: .utf8)!)}")
             } catch {
                 NSLog("Failed to encode JSON")
@@ -203,8 +203,8 @@ class NT4Client: WebSocketDelegate {
         }
     }
 
-    private static func getClientTimeUS() -> Int {
-        return Int(Date().timeIntervalSince1970 * 1000000)
+    private static func getClientTimeUS() -> Int64 {
+        return Int64(Date().timeIntervalSince1970 * 1000000)
     }
 
     private func getServerTimeUS() -> Int {
