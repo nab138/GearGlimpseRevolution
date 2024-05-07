@@ -62,7 +62,7 @@ class NT4Client: WebSocketDelegate {
         if serverConnectionActive {
             let options = NTSubscriptionOptions(periodic: periodic, all: all, topicsOnly: topicsOnly, isPrefix: prefix)
             let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: [key], options: options)
-            subscriptions[topic.uid] = sub
+            subscriptions[sub.uid] = sub
             wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
             return sub.uid
         }
@@ -72,7 +72,7 @@ class NT4Client: WebSocketDelegate {
     func subscribe(key: String, options: NTSubscriptionOptions) -> Int {
         if serverConnectionActive {
             let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: [key], options: options)
-            subscriptions[topic.uid] = sub
+            subscriptions[sub.uid] = sub
             wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
             return sub.uid
         }
@@ -82,7 +82,7 @@ class NT4Client: WebSocketDelegate {
     func subscribe(key: Set<String>, options: NTSubscriptionOptions) -> Int{
         if serverConnectionActive {
             let sub = NTSubscription(uid: NT4Client.getNewUid(), topics: key, options: options)
-            subscriptions[topic.uid] = sub
+            subscriptions[sub.uid] = sub
             wsSendJson(method: "subscribe", params: sub.toSubscribeObj())
             return sub.uid
         }
