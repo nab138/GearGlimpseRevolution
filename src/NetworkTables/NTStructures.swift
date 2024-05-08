@@ -73,6 +73,8 @@ class NTTopic {
     var name: String = ""
     var type: String = ""
     var properties: [String: Any] = [:]
+    var latestValue: Any? = nil
+    var latestTimestamp: Int64 = -1
 
     init(uid: Int, name: String, type: String, properties: [String: Any]) {
         self.uid = uid
@@ -127,6 +129,19 @@ class NTTopic {
             return index
         } else {
             return 5 // Default to binary
+        }
+    }
+
+    func getDoubleArray() -> [Double]? {
+        if("double[]" != type) {
+            NSLog("Attempted to get double array from non-double[] topic")
+            return nil
+        }
+        if let val = latestValue as? [Double] {
+            return val
+        } else {
+            NSLog("Failed to cast latest value to double array")
+            return nil
         }
     }
 }

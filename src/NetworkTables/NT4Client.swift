@@ -193,6 +193,8 @@ class NT4Client: WebSocketDelegate {
             }
             // If the topic is not found, return
             guard let topic = topic else { return }
+            topic.latestValue = data
+            topic.latestTimestamp = timestamp
             onNewTopicData?(topic, timestamp, data)
         } else if topicID == -1 {
             // Handle receive timestamp
