@@ -6,6 +6,7 @@ import SceneKit.ModelIO
 class RootViewController: UIViewController, UIGestureRecognizerDelegate {
     var sceneView: ARSceneView!
     var fieldNode: SCNNode!
+    var robotNode: SCNNode!
 
     var hasPlacedField = false
 
@@ -33,6 +34,15 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         fieldNode = field
         fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
         NSLog("Field loaded successfully")
+        
+        // Load the robot, it should be relative to the field. 0,0 should be the center of the field
+        guard let robot = sceneView.loadModelFromName("Robot") else {
+            NSLog("Failed to load robot model")
+            return
+        }
+        robotNode = robot
+        fieldNode.addChildNode(robotNode)
+
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         tapGestureRecognizer.delegate = self
@@ -52,6 +62,13 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
             NSLog("Unannounced topic: \(topic.name)")
         }, onNewTopicData: { topic, timestamp, data in
             NSLog("New data for topic \(topic.name): \(data)")
+            if topic.name == "/SmartDashboard/Field/Robot" {
+                // [x, y, rot (degrees)]
+                var newPos = topic.getDoubleArray();
+                // The data is in meters relative to the field center (in the field model scale) so we need to scale it to the ARKit scale
+                robotNode.position = SCNVector3(newPos[0] -8.25, 0, newPos[1] - 4)
+                robotNode.eulerAngles.y = newPos[2] * .pi / 180
+            }
         }, onConnect: {
             NSLog("Connected to NetworkTables")
         }, onDisconnect: ((String, UInt16) -> Void)? { reason, code in
