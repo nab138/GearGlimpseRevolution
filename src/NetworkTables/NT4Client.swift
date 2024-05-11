@@ -114,12 +114,10 @@ class NT4Client: WebSocketDelegate {
                 serverConnectionActive = false
                 onDisconnect?(reason, code)
             case .text(let string):
+                NSLog("Recieved text: \(string)")
                 if let data = string.data(using: .utf8) {
                     if let msg = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
-                        if msg == nil {
-                            NSLog("[NT4] Failed to decode JSON message: \(string)")
-                            return
-                        }
+                        NSLog("Received JSON: \(msg)")
                         // Iterate through the messages
                         for obj in msg {
                             let objStr = String(describing: obj)
@@ -162,6 +160,7 @@ class NT4Client: WebSocketDelegate {
     }
 
     private func handleJsonMessage(msg: [String: Any]) {
+        NSLog("Recieved Parsed JSON: \(msg)")
         if let method = msg["method"] as? String {
             if let params = msg["params"] as? [String: Any] {
                 switch method {
@@ -177,10 +176,20 @@ class NT4Client: WebSocketDelegate {
         }
     }
 
-    private func handleMsgPackMessage(msg: [Any]){
-        let topicID = msg[0] as! Int
-        let timestamp = msg[1] as! Int64
+    private func handleMsgPackMessage(msg: [Optional<Any>]){
+        NSLog("Received binary: \(msg)")
+        NSLog("attempting to decode topic id: \(msg[0]!)")
+        guard let unwrappedMsg = msg[0], let topicID = unwrappedMsg as? Int else {
+            NSLog("Failed to decode topicID")
+            return
+        }
+        guard let timestamp = msg[1]! as? Int64 else {
+            NSLog("Failed to decode timestamp")
+            return
+        }
         let data = msg[2]
+        NSLog("topicID: \(topicID), timestamp: \(timestamp), data: \(data!)")
+
 
         if topicID >= 0 {
             var topic: NTTopic? = nil
@@ -197,8 +206,13 @@ class NT4Client: WebSocketDelegate {
             topic.latestTimestamp = timestamp
             onNewTopicData?(topic, timestamp, data)
         } else if topicID == -1 {
+            guard let clientTimestamp = data as? Int64 else {
+                NSLog("Failed to decode clientTimestamp")
+                return
+            }
+            NSLog("Received timestamp: \(clientTimestamp)")
             // Handle receive timestamp
-            wsHandleReceiveTimestamp(serverTimestamp: timestamp, clientTimestamp: Int64(data as! Int))
+            wsHandleReceiveTimestamp(serverTimestamp: timestamp, clientTimestamp: clientTimestamp)
         }
     }
 
@@ -225,7 +239,8 @@ class NT4Client: WebSocketDelegate {
         do {
             let timestamp = NT4Client.getClientTimeUS()
             var data = Data()
-            try data.pack(-1, 0, NT4Client.getClientTimeUS(), timestamp)
+            let array: [Any] = [-1, 0, NTTopic.typestrIdxLookup["int"]!, timestamp]
+            try data.pack(array)
             wsSendBinary(data: data)
         } catch {
             NSLog("Failed to encode timestamp")
@@ -243,7 +258,7 @@ class NT4Client: WebSocketDelegate {
             // send {"method": "method", "params": "params}
             do {
                 let jsonData = try JSONSerialization.data(withJSONObject: params, options: .prettyPrinted)
-                ws?.write(string: "{\"method\":\"\(method)\",\"params\":\(String(data: jsonData, encoding: .utf8)!)}")
+                ws?.write(string: "[{\"method\":\"\(method)\",\"params\":\(String(data: jsonData, encoding: .utf8)!)}]")
             } catch {
                 NSLog("Failed to encode JSON")
             }
@@ -256,8 +271,7 @@ class NT4Client: WebSocketDelegate {
 
     private func getServerTimeUS() -> Int64 {
         if serverTimeOffset_us == nil {
-            // TODO: maybe return nil?
-            return 0
+            return -1
         }
         return NT4Client.getClientTimeUS() + Int64(serverTimeOffset_us!)
     }

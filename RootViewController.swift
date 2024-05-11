@@ -41,7 +41,11 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
             return
         }
         robotNode = robot
-        fieldNode.addChildNode(robotNode)
+        // Create a dummy node so that I can offset the position of the robot
+        let dummyNode = SCNNode()
+        dummyNode.position = SCNVector3(0.35, -0.35, -0.35)
+        dummyNode.addChildNode(robotNode)
+        fieldNode.addChildNode(dummyNode)
 
 
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
@@ -64,10 +68,10 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
             NSLog("New data for topic \(topic.name): \(data)")
             if topic.name == "/SmartDashboard/Field/Robot" {
                 // [x, y, rot (degrees)]
-                var newPos = topic.getDoubleArray();
+                let newPos = topic.getDoubleArray();
                 // The data is in meters relative to the field center (in the field model scale) so we need to scale it to the ARKit scale
-                robotNode.position = SCNVector3(newPos[0] -8.25, 0, newPos[1] - 4)
-                robotNode.eulerAngles.y = newPos[2] * .pi / 180
+                self.robotNode.position = SCNVector3(newPos![0] - 8.25, 0, newPos![1] - 4)
+                self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
             }
         }, onConnect: {
             NSLog("Connected to NetworkTables")
