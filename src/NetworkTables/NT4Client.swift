@@ -169,11 +169,11 @@ class NT4Client: WebSocketDelegate {
     }
 
     private func handleMsgPackMessage(msg: [Any?]){
-        NSLog("Type of msg[3]: \(type(of: msg[3]!))")
+        NSLog("Type of msg[1]: \(type(of: msg[1]!))")
 
-        guard let unsignedTimestamp = msg[1]! as? UInt32 else {
+        let unsignedTimestamp = (msg[1] as? UInt32) ?? 0
+        if unsignedTimestamp == 0 {
             NSLog("Failed to decode timestamp")
-            return
         }
         let timestamp = Int64(unsignedTimestamp)
         let data = msg[3]!

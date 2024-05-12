@@ -66,6 +66,7 @@ extension RootViewController {
             NSLog("Disconnected from NetworkTables, reason: \(reason), code: \(code)")
         })
             self.NTClient.connect()
+            self.NTClient.subscribe(key: "/SmartDashboard/Field/Robot", periodic: 0.001)
         }))
         self.present(alert, animated: true, completion: nil)
     }
