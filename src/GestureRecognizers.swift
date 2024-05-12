@@ -36,4 +36,37 @@ extension RootViewController {
     
         sender.scale = 1.0
     }
+
+    @objc func handleDoubleTap(sender: UITapGestureRecognizer) {
+        let alert = UIAlertController(title: "Configuration", message: "Configure the robot", preferredStyle: .alert)
+        alert.addTextField { (textField) in
+            // Default value
+            textField.text = "192.168.1.130"
+        }
+        alert.addAction(UIAlertAction(title: "Connect", style: .default, handler: { [weak alert] (_) in
+            let textField = alert?.textFields![0]
+            self.NTClient.disconnect()
+            self.NTClient = NT4Client(appName: "ARKit", serverBaseAddr: textField!.text!,
+            onTopicAnnounce: { topic in
+                NSLog("Announced topic: \(topic.name)")
+            }, onTopicUnannounce: { topic in
+                NSLog("Unannounced topic: \(topic.name)")
+            }, onNewTopicData: { topic, timestamp, data in
+                NSLog("New data for topic \(topic.name): \(data)")
+                if topic.name == "/SmartDashboard/Field/Robot" {
+                    // [x, y, rot (degrees)]
+                    let newPos = topic.getDoubleArray();
+                    // The data is in meters relative to the field center (in the field model scale) so we need to scale it to the ARKit scale
+                    self.robotNode.position = SCNVector3(-newPos![0] + 8.25, 0, newPos![1] - 4)
+                    self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
+                }
+            }, onConnect: {
+            NSLog("Connected to NetworkTables")
+        }, onDisconnect: ((String, UInt16) -> Void)? { reason, code in
+            NSLog("Disconnected from NetworkTables, reason: \(reason), code: \(code)")
+        })
+            self.NTClient.connect()
+        }))
+        self.present(alert, animated: true, completion: nil)
+    }
 }

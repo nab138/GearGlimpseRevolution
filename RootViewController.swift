@@ -60,6 +60,11 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         pinchGestureRecognizer.delegate = self
         sceneView.addGestureRecognizer(pinchGestureRecognizer)
 
+        let doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap))
+        doubleTapGestureRecognizer.delegate = self
+        doubleTapGestureRecognizer.numberOfTapsRequired = 2
+        sceneView.addGestureRecognizer(doubleTapGestureRecognizer)
+
         NTClient = NT4Client(appName: "ARKit", serverBaseAddr: "192.168.1.130", onTopicAnnounce: { topic in
             NSLog("Announced topic: \(topic.name)")
         }, onTopicUnannounce: { topic in
