@@ -43,7 +43,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         robotNode = robot
         // Create a dummy node so that I can offset the position of the robot
         let dummyNode = SCNNode()
-        dummyNode.position = SCNVector3(0.35, -0.35, -0.35)
+        dummyNode.position = SCNVector3(0.35, -0.35, -0.8)
         dummyNode.addChildNode(robotNode)
         fieldNode.addChildNode(dummyNode)
 
@@ -70,7 +70,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
                 // [x, y, rot (degrees)]
                 let newPos = topic.getDoubleArray();
                 // The data is in meters relative to the field center (in the field model scale) so we need to scale it to the ARKit scale
-                self.robotNode.position = SCNVector3(newPos![0] - 8.25, 0, newPos![1] - 4)
+                self.robotNode.position = SCNVector3(-newPos![0] + 8.25, 0, newPos![1] - 4)
                 self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
             }
         }, onConnect: {
@@ -80,7 +80,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         })
 
         NTClient.connect()
-        NTClient.subscribe(key: "/SmartDashboard/Field/Robot")
+        NTClient.subscribe(key: "/SmartDashboard/Field/Robot", periodic: 0.001)
     }
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {

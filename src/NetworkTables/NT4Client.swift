@@ -114,18 +114,12 @@ class NT4Client: WebSocketDelegate {
                 serverConnectionActive = false
                 onDisconnect?(reason, code)
             case .text(let string):
-                NSLog("Recieved text: \(string)")
                 if let data = string.data(using: .utf8) {
                     if let msg = try? JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]] {
-                        NSLog("Received JSON: \(msg)")
                         // Iterate through the messages
                         for obj in msg {
-                            let objStr = String(describing: obj)
-                            // Attempt to decode the message as a JSON object
-                            if let msgObj = try? JSONSerialization.jsonObject(with: objStr.data(using: .utf8)!, options: []) as? [String: Any] {
-                                // Handle the message
-                                handleJsonMessage(msg: msgObj)
-                            }
+                            // Handle the message
+                            handleJsonMessage(msg: obj)
                         }
                     }
                 }
@@ -160,7 +154,6 @@ class NT4Client: WebSocketDelegate {
     }
 
     private func handleJsonMessage(msg: [String: Any]) {
-        NSLog("Recieved Parsed JSON: \(msg)")
         if let method = msg["method"] as? String {
             if let params = msg["params"] as? [String: Any] {
                 switch method {
@@ -168,7 +161,6 @@ class NT4Client: WebSocketDelegate {
                         let newTopic = NTTopic(data: params)
                         serverTopics[newTopic.name] = newTopic
                         onTopicAnnounce?(newTopic)
-                        NSLog("Announce: \(params)")
                     default:
                         NSLog("Unknown method: \(method)")
                 }
@@ -176,22 +168,27 @@ class NT4Client: WebSocketDelegate {
         }
     }
 
-    private func handleMsgPackMessage(msg: [Optional<Any>]){
-        NSLog("Received binary: \(msg)")
-        NSLog("attempting to decode topic id: \(msg[0]!)")
-        guard let unwrappedMsg = msg[0], let topicID = unwrappedMsg as? Int else {
-            NSLog("Failed to decode topicID")
-            return
-        }
-        guard let timestamp = msg[1]! as? Int64 else {
+    private func handleMsgPackMessage(msg: [Any?]){
+        NSLog("Type of msg[3]: \(type(of: msg[3]!))")
+
+        guard let unsignedTimestamp = msg[1]! as? UInt32 else {
             NSLog("Failed to decode timestamp")
             return
         }
-        let data = msg[2]
-        NSLog("topicID: \(topicID), timestamp: \(timestamp), data: \(data!)")
-
-
-        if topicID >= 0 {
+        let timestamp = Int64(unsignedTimestamp)
+        let data = msg[3]!
+            
+        if let topicID = msg[0]! as? Int8 {
+            if topicID == -1 {
+            guard let clientTimestamp = data as? Int64 else {
+                NSLog("Failed to decode clientTimestamp")
+                return
+            }
+            NSLog("Received timestamp: \(clientTimestamp)")
+            // Handle receive timestamp
+            wsHandleReceiveTimestamp(serverTimestamp: timestamp, clientTimestamp: clientTimestamp)
+        }
+        } else if let topicID = msg[0]! as? UInt16 {
             var topic: NTTopic? = nil
             // Check to see if the topic ID matches any of the server topics
             for serverTopic in serverTopics.values {
@@ -205,15 +202,11 @@ class NT4Client: WebSocketDelegate {
             topic.latestValue = data
             topic.latestTimestamp = timestamp
             onNewTopicData?(topic, timestamp, data)
-        } else if topicID == -1 {
-            guard let clientTimestamp = data as? Int64 else {
-                NSLog("Failed to decode clientTimestamp")
-                return
-            }
-            NSLog("Received timestamp: \(clientTimestamp)")
-            // Handle receive timestamp
-            wsHandleReceiveTimestamp(serverTimestamp: timestamp, clientTimestamp: clientTimestamp)
+        } else {
+            NSLog("Failed to decode topicID")
+            return
         }
+        
     }
 
     private func wsHandleReceiveTimestamp(serverTimestamp: Int64, clientTimestamp: Int64) {
