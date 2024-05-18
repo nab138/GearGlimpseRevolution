@@ -14,11 +14,9 @@ class NT4Client: WebSocketDelegate {
     var onConnect: (() -> Void)?
     var onDisconnect: ((String, UInt16) -> Void)?
 
-    var serverBaseAddr: String
     var ws: WebSocket?
     var timestampInterval: Timer?
     var disconnectTimeout: Timer?
-    var serverAddr = ""
     var serverConnectionActive = false
     var serverConnectionRequested = false
     var serverTimeOffset_us: Int?
@@ -30,9 +28,9 @@ class NT4Client: WebSocketDelegate {
 
     var queuedSubscriptions = [NTSubscription]()
     
-    init(appName: String, serverBaseAddr: String, onTopicAnnounce: ((NTTopic) -> Void)?, onTopicUnannounce: ((NTTopic) -> Void)?, onNewTopicData: ((NTTopic, Int64, Any) -> Void)?, onConnect: (() -> Void)?, onDisconnect: ((String, UInt16) -> Void)?) {
+    
+    init(appName: String, onTopicAnnounce: ((NTTopic) -> Void)?, onTopicUnannounce: ((NTTopic) -> Void)?, onNewTopicData: ((NTTopic, Int64, Any) -> Void)?, onConnect: (() -> Void)?, onDisconnect: ((String, UInt16) -> Void)?) {
         self.appName = appName
-        self.serverBaseAddr = serverBaseAddr
         self.onTopicAnnounce = onTopicAnnounce
         self.onTopicUnannounce = onTopicUnannounce
         self.onNewTopicData = onNewTopicData
@@ -40,12 +38,12 @@ class NT4Client: WebSocketDelegate {
         self.onDisconnect = onDisconnect
     }
 
-    func connect(){
+    func connect(serverBaseAddr: String){
         if serverConnectionActive {
             return
         }
         serverConnectionRequested = true
-        serverAddr = "ws://" + serverBaseAddr + ":" + String(PORT) + "/nt/" + appName
+        let serverAddr = "ws://" + serverBaseAddr + ":" + String(PORT) + "/nt/" + appName
         NSLog("Connecting to \(serverAddr)")
         let url = URL(string: serverAddr)!
         let urlRequest = URLRequest(url: url)
@@ -57,6 +55,7 @@ class NT4Client: WebSocketDelegate {
     func disconnect(){
         if serverConnectionActive {
             ws?.disconnect()
+            serverConnectionActive = false
         }
     }
 
@@ -148,8 +147,10 @@ class NT4Client: WebSocketDelegate {
                 serverConnectionActive = false
                 onDisconnect?("Error", 0)
                 NSLog("An error occurred")
-                case .peerClosed:
-                    break
+            case .peerClosed:
+                serverConnectionActive = false
+                onDisconnect?("Peer closed", 0)
+                NSLog("Peer closed")
 	    }
     }
 

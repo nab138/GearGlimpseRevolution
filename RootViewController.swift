@@ -10,12 +10,14 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
 
     var hasPlacedField = false
 
-    var NTClient: NT4Client!
+    var NTHandler: NetworkTablesHandler!
+
+    var statusLabel: PaddedLabel!
 
     override func loadView() {
         super.loadView()
 
-        sceneView = ARSceneView(frame: self.view.frame)
+        sceneView = ARSceneView(frame: UIScreen.main.bounds)
         sceneView.autoenablesDefaultLighting = true
         self.view.addSubview(sceneView)
     }
@@ -43,51 +45,40 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         robotNode = robot
         // Create a dummy node so that I can offset the position of the robot
         let dummyNode = SCNNode()
-        dummyNode.position = SCNVector3(0.35, -0.35, -0.8)
+        dummyNode.position = SCNVector3(0.35, -0.35, -0.875)
         dummyNode.addChildNode(robotNode)
         fieldNode.addChildNode(dummyNode)
+        
+        addGestureRecognizers()
+        statusLabel = PaddedLabel()
 
+        statusLabel.text = "NT: Disconnected"
+        statusLabel.font = UIFont.systemFont(ofSize: 14)
+        statusLabel.textColor = UIColor.white
+        statusLabel.backgroundColor = UIColor.red.withAlphaComponent(0.4)
+        statusLabel.textAlignment = .center
+        statusLabel.layer.cornerRadius = 10
+        statusLabel.layer.masksToBounds = true
+        statusLabel.sizeToFit()
+        statusLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
+        statusLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
 
-        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
-        tapGestureRecognizer.delegate = self
-        sceneView.addGestureRecognizer(tapGestureRecognizer)
+        statusLabel.leftInset = 10
+        statusLabel.rightInset = 10
 
-        let rotateGestureRecognizer = UIRotationGestureRecognizer(target: self, action: #selector(handleRotate))
-        rotateGestureRecognizer.delegate = self
-        sceneView.addGestureRecognizer(rotateGestureRecognizer)
+        statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        sceneView.addSubview(statusLabel)
+        NSLayoutConstraint.activate([
+            statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            statusLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            statusLabel.heightAnchor.constraint(equalToConstant: 30)
+        ])
 
-        let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch))
-        pinchGestureRecognizer.delegate = self
-        sceneView.addGestureRecognizer(pinchGestureRecognizer)
-
-        let doubleTapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleDoubleTap))
-        doubleTapGestureRecognizer.delegate = self
-        doubleTapGestureRecognizer.numberOfTapsRequired = 2
-        sceneView.addGestureRecognizer(doubleTapGestureRecognizer)
-
-        NTClient = NT4Client(appName: "ARKit", serverBaseAddr: "192.168.1.130", onTopicAnnounce: { topic in
-            NSLog("Announced topic: \(topic.name)")
-        }, onTopicUnannounce: { topic in
-            NSLog("Unannounced topic: \(topic.name)")
-        }, onNewTopicData: { topic, timestamp, data in
-            NSLog("New data for topic \(topic.name): \(data)")
-            if topic.name == "/SmartDashboard/Field/Robot" {
-                // [x, y, rot (degrees)]
-                let newPos = topic.getDoubleArray();
-                // The data is in meters relative to the field center (in the field model scale) so we need to scale it to the ARKit scale
-                self.robotNode.position = SCNVector3(-newPos![0] + 8.25, 0, newPos![1] - 4)
-                self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
-            }
-        }, onConnect: {
-            NSLog("Connected to NetworkTables")
-        }, onDisconnect: ((String, UInt16) -> Void)? { reason, code in
-            NSLog("Disconnected from NetworkTables, reason: \(reason), code: \(code)")
-        })
-
-        NTClient.connect()
-        NTClient.subscribe(key: "/SmartDashboard/Field/Robot", periodic: 0.001)
+        NTHandler = NetworkTablesHandler(robotNode: robotNode, statusLabel: statusLabel)
+        NTHandler.connect()
     }
 
+    // Done to allow rotation and pinch gestures to work simultaneously
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         return true
     }
@@ -97,15 +88,10 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         sceneView.session.pause()
     }
 
+    // This is done to make sure the ARSceneView is resized when the device is rotated
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
 
         sceneView.frame = CGRect(origin: .zero, size: size)
-    }
-
-    // When the app is brought to the foreground, resume the WS connection
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        NTClient.connect()
     }
 }

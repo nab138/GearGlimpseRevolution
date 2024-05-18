@@ -3,6 +3,29 @@ import UIKit
 import ARKit
 
 extension RootViewController {
+
+    func addGestureRecognizers(){
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        tapGestureRecognizer.delegate = self
+        sceneView.addGestureRecognizer(tapGestureRecognizer)
+
+        let rotateGestureRecognizer = UIRotationGestureRecognizer(target: self, action: #selector(handleRotate))
+        rotateGestureRecognizer.delegate = self
+        sceneView.addGestureRecognizer(rotateGestureRecognizer)
+
+        let pinchGestureRecognizer = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch))
+        pinchGestureRecognizer.delegate = self
+        sceneView.addGestureRecognizer(pinchGestureRecognizer)
+
+        let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(openConfig))
+        longPressGestureRecognizer.delegate = self
+        longPressGestureRecognizer.minimumPressDuration = 0.5
+        sceneView.addGestureRecognizer(longPressGestureRecognizer)
+
+        // Prevent the tap gesture from being recognized until the long press gesture fails
+        tapGestureRecognizer.require(toFail: longPressGestureRecognizer)
+    }
+
     @objc func handleTap(sender: UITapGestureRecognizer) {
         let tapLocation = sender.location(in: sceneView)
         guard let query = sceneView.raycastQuery(from: tapLocation, allowing: .estimatedPlane, alignment: .horizontal) else {
@@ -37,36 +60,25 @@ extension RootViewController {
         sender.scale = 1.0
     }
 
-    @objc func handleDoubleTap(sender: UITapGestureRecognizer) {
-        let alert = UIAlertController(title: "Configuration", message: "Configure the robot", preferredStyle: .alert)
+    @objc func openConfig(sender: UITapGestureRecognizer) {
+        let alert = UIAlertController(title: "Configuration", message: "Configure GearGlimpse", preferredStyle: .alert)
         alert.addTextField { (textField) in
-            // Default value
-            textField.text = "192.168.1.130"
+            textField.placeholder = "IP Address"
+            textField.text = UserDefaults.standard.string(forKey: "ip")
         }
-        alert.addAction(UIAlertAction(title: "Connect", style: .default, handler: { [weak alert] (_) in
-            let textField = alert?.textFields![0]
-            self.NTClient.disconnect()
-            self.NTClient = NT4Client(appName: "ARKit", serverBaseAddr: textField!.text!,
-            onTopicAnnounce: { topic in
-                NSLog("Announced topic: \(topic.name)")
-            }, onTopicUnannounce: { topic in
-                NSLog("Unannounced topic: \(topic.name)")
-            }, onNewTopicData: { topic, timestamp, data in
-                NSLog("New data for topic \(topic.name): \(data)")
-                if topic.name == "/SmartDashboard/Field/Robot" {
-                    // [x, y, rot (degrees)]
-                    let newPos = topic.getDoubleArray();
-                    // The data is in meters relative to the field center (in the field model scale) so we need to scale it to the ARKit scale
-                    self.robotNode.position = SCNVector3(-newPos![0] + 8.25, 0, newPos![1] - 4)
-                    self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
-                }
-            }, onConnect: {
-            NSLog("Connected to NetworkTables")
-        }, onDisconnect: ((String, UInt16) -> Void)? { reason, code in
-            NSLog("Disconnected from NetworkTables, reason: \(reason), code: \(code)")
-        })
-            self.NTClient.connect()
-            self.NTClient.subscribe(key: "/SmartDashboard/Field/Robot", periodic: 0.001)
+        alert.addTextField { (textField) in
+            textField.placeholder = "Robot Key"
+            textField.text = UserDefaults.standard.string(forKey: "robotKey")
+        }
+        let connected = NTHandler.client.serverConnectionActive
+        alert.addAction(UIAlertAction(title: connected ? "Reconnect" : "Connect", style: .default, handler: { [weak alert] (_) in
+            let ipField = alert?.textFields![0]
+            let robotKeyField = alert?.textFields![1]
+            self.NTHandler.ip = ipField!.text
+            self.NTHandler.robotKey = robotKeyField!.text
+            self.NTHandler.connect()
+            UserDefaults.standard.set(ipField!.text!, forKey: "ip")
+            UserDefaults.standard.set(robotKeyField!.text!, forKey: "robotKey")
         }))
         self.present(alert, animated: true, completion: nil)
     }
