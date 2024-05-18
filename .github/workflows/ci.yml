@@ -19,6 +19,18 @@ jobs:
           cache-dir-theos: ${{ github.workspace }}/theos
           cache-dir-sdks: ${{ github.workspace }}/theos/sdks
 
+      - name: Download Robot Model
+        uses: robinraju/release-downloader@v1.10
+        with:
+          tarBall: false
+          zipBall: false
+          out-file-path: "Resources"
+          tag: "assets"
+          fileName: "Robot.usdz"
+
+      - name: List contents of Resources (For Debugging)
+        run: ls Resources
+
       - name: Build
         run: |
           rm -f packages/*
