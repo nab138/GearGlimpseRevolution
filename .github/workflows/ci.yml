@@ -28,9 +28,6 @@ jobs:
           tag: "assets"
           fileName: "Robot.usdz"
 
-      - name: List contents of Resources (For Debugging)
-        run: ls Resources
-
       - name: Build
         run: |
           rm -f packages/*
