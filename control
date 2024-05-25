@@ -2,7 +2,7 @@ Package: me.nabdev.gearglimpserev
 Name: GearGlimpseRevolution
 Version: 0.0.1
 Architecture: iphoneos-arm
-Description: An awesome application!
+Description: iOS AR FRC Tools
 Maintainer: nab138
 Author: nab138
 Section: Utilities
