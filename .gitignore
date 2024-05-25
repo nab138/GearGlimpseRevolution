@@ -3,3 +3,4 @@ packages/
 .DS_Store
 packages_archive/
 Robot.usdz
+*.env
