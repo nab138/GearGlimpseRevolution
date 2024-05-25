@@ -27,7 +27,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         instructionLabel = PaddedLabel()
         instructionLabel.font = UIFont.systemFont(ofSize: 18)
         instructionLabel.textColor = UIColor.white
-        instructionLabel.backgroundColor = UIColor.darkGray.withAlphaComponent(0.8)
+        instructionLabel.backgroundColor = UIColor.darkGray.withAlphaComponent(0.65)
         instructionLabel.text = "Move iPhone to start"
         instructionLabel.translatesAutoresizingMaskIntoConstraints = false
         instructionLabel.layer.cornerRadius = 10
