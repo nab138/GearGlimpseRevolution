@@ -64,6 +64,15 @@ extension RootViewController {
         let configViewController = ConfigViewController()
         let navigationController = UINavigationController(rootViewController: configViewController)
         configViewController.NTHandler = NTHandler
+        configViewController.fieldNode = fieldNode
+        UIView.animate(withDuration: 0.2) {
+            self.openSettingsLabel.alpha = 0
+        } completion: { _ in
+            self.openSettingsLabel.isHidden = true
+        }
+        if !UserDefaults.standard.bool(forKey: "hasOpenedSettings") {
+            UserDefaults.standard.set(true, forKey: "hasOpenedSettings")
+        }
         present(navigationController, animated: true, completion: nil)
     }
 }

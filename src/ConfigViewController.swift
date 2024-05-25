@@ -1,9 +1,11 @@
 import UIKit
 import Foundation
+import ARKit
 
 enum CellType {
     case textField(placeholder: String, defaultValue: String?, keyboardType: UIKeyboardType = .default)
     case toggleSwitch(label: String, defaultValue: Bool = false)
+    case button(label: String, action: () -> Void)
 }
 
 struct Row {
@@ -16,6 +18,8 @@ class ConfigViewController: UITableViewController {
     var portTextField: UITextField!
     var robotKeyTextField: UITextField!
     var NTHandler: NetworkTablesHandler!
+    var fieldNode: SCNNode!
+    var actions = [IndexPath: () -> Void]()
 
     var cellViews: [IndexPath: UIView] = [:]
         var sections: [[Row]] = []
@@ -32,13 +36,27 @@ class ConfigViewController: UITableViewController {
             ],
             [
                 Row(type: .textField(placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey"))),
+            ],
+            [
+                Row(type: .button(label: "Set Full-Size Field", action: {
+                    self.fieldNode.scale = SCNVector3(1, 1, 1)
+                })),
+            ],
+            [
+                Row(type: .button(label: "Clear Saved Data", action: {
+                    let appDomain = Bundle.main.bundleIdentifier!
+                    UserDefaults.standard.removePersistentDomain(forName: appDomain)
+                })),
             ]
         ]
 
         title = "Settings"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(saveSettings))
 
-        tableView = UITableView(frame: .zero, style: .grouped)
+        tableView = UITableView(frame: .zero, style: .insetGrouped)
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        tapGesture.cancelsTouchesInView = false
+        tableView.addGestureRecognizer(tapGesture)
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -78,8 +96,23 @@ class ConfigViewController: UITableViewController {
                 toggleSwitch.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor)
             ])
             cellViews[indexPath] = toggleSwitch
+        case .button(let label, let action):
+            cell.textLabel?.text = label
+            cell.textLabel?.textColor = view.tintColor
+            cell.selectionStyle = .default
+            cell.isUserInteractionEnabled = true
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.cellTapped(_:)))
+            cell.addGestureRecognizer(tapGesture)
+            actions[indexPath] = action
         }
         return cell
+    }
+
+    @objc func cellTapped(_ sender: UITapGestureRecognizer) {
+        let cell = sender.view as! UITableViewCell
+        if let indexPath = tableView.indexPath(for: cell), let action = actions[indexPath] {
+            action()
+        }
     }
 
     override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -87,7 +120,18 @@ class ConfigViewController: UITableViewController {
     }
 
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        return section == 0 ? "Network Tables" : "Robot"
+        switch section {
+        case 0:
+            return "Connection Settings"
+        case 1:
+            return "Robot Settings"
+        case 2:
+            return "AR Settings"
+        case 3:
+            return "Developer Settings"
+        default:
+            return nil
+        }
     }
 
     @objc func saveSettings() {
@@ -116,5 +160,9 @@ class ConfigViewController: UITableViewController {
         NTHandler.connect()
 
         dismiss(animated: true, completion: nil)
+    }
+
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
     }
 }

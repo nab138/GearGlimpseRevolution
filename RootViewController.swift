@@ -15,6 +15,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     var statusLabel: PaddedLabel!
     var instructionLabel: PaddedLabel!
 
+    var openSettingsLabel: UILabel!
+
     override func loadView() {
         super.loadView()
 
@@ -34,8 +36,6 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         instructionLabel.bottomInset = 10
         instructionLabel.leftInset = 15
         instructionLabel.rightInset = 15
-
-
         
         self.view.addSubview(instructionLabel)
 
@@ -101,6 +101,29 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
 
         NTHandler = NetworkTablesHandler(robotNode: robotNode, statusLabel: statusLabel)
         NTHandler.connect()
+
+
+        openSettingsLabel = UILabel()
+        openSettingsLabel.font = UIFont.systemFont(ofSize: 18)
+        openSettingsLabel.textColor = UIColor.white
+        openSettingsLabel.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+        openSettingsLabel.text = "Press & Hold to Open Settings!"
+        openSettingsLabel.textAlignment = .center // Center the text
+        openSettingsLabel.translatesAutoresizingMaskIntoConstraints = false
+        openSettingsLabel.layer.cornerRadius = 10
+        openSettingsLabel.layer.masksToBounds = true
+
+
+
+        if UserDefaults.standard.bool(forKey: "hasOpenedSettings") == false {
+            self.view.addSubview(openSettingsLabel)
+            NSLayoutConstraint.activate([
+                openSettingsLabel.topAnchor.constraint(equalTo: self.view.topAnchor),
+                openSettingsLabel.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+                openSettingsLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                openSettingsLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+            ])
+        }
     }
 
     // Done to allow rotation and pinch gestures to work simultaneously
