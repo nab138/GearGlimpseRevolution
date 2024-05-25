@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - "release/*" # Trigger this workflow on push to any release branch
+      - "release/*"
 
 jobs:
   build:
@@ -43,23 +43,18 @@ jobs:
           name: GearGlimpseRevolution
           path: packages/*.ipa
 
+      - name: Set Release Version
+        id: version
+        run: echo "::set-output name=version::${GITHUB_REF#refs/heads/release/}"
+
       - name: Create Release
         if: startsWith(github.ref, 'refs/heads/release/')
-        uses: elgohr/Github-Release-Action@v5
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: "marvinpinto/action-automatic-releases@latest"
         with:
-          # title is from the release branch name (release/v1.0.0 -> GearGlimpseRevolution v1.0.0)
-          title: GearGlimpseRevolution ${{ github.ref }}
-
-      - name: Upload Release Asset
-        if: startsWith(github.ref, 'refs/heads/release/')
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
-          asset_path: ./packages/GearGlimpseRevolution.ipa
-          asset_name: GearGlimpseRevolution.ipa
-          asset_content_type: application/octet-stream
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ steps.version.outputs.version }}"
+          prerelease: false
+          draft: true
+          title: "GearGlimpseRevolution ${{ steps.version.outputs.version }}"
+          files: |
+            packages/*.ipa
