@@ -43,14 +43,18 @@ jobs:
           name: GearGlimpseRevolution
           path: packages/*.ipa
 
+      - name: Set Release Version
+        id: version
+        run: echo "::set-output name=version::${GITHUB_REF#refs/heads/release/}"
+
       - name: Create Release
         if: startsWith(github.ref, 'refs/heads/release/')
         uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "${GITHUB_REF#refs/heads/release/}"
+          automatic_release_tag: "${{ steps.version.outputs.version }}"
           prerelease: false
           draft: true
-          title: "GearGlimpseRevolution ${GITHUB_REF#refs/heads/release/}"
+          title: "GearGlimpseRevolution ${{ steps.version.outputs.version }}"
           files: |
             packages/*.ipa
