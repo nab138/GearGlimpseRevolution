@@ -10,6 +10,7 @@ class NetworkTablesHandler {
     var robotSubID: Int = -1
 
     var ip: String?
+    var port: String?
     var robotKey: String?
 
     init(robotNode: SCNNode, statusLabel: UILabel) {
@@ -38,6 +39,11 @@ class NetworkTablesHandler {
             self.statusLabel.backgroundColor = UIColor.red.withAlphaComponent(0.4)
         })
         ip = UserDefaults.standard.string(forKey: "ip")
+        port = UserDefaults.standard.string(forKey: "port")
+        if port == nil {
+            port = "5810"
+            UserDefaults.standard.set(port, forKey: "port")
+        }
         robotKey = UserDefaults.standard.string(forKey: "robotKey")
         if robotKey == nil {
             robotKey = "/SmartDashboard/Field/Robot"
@@ -52,7 +58,7 @@ class NetworkTablesHandler {
         if client.serverConnectionActive {
             client.disconnect()
         }
-        client.connect(serverBaseAddr: ip!);
+        client.connect(serverBaseAddr: ip!, port: port ?? "5810");
         robotSubID = client.subscribe(key: robotKey!, periodic: 0.001)
     }
 }

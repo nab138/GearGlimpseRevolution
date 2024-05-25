@@ -1,7 +1,6 @@
 import UIKit
 
 class NT4Client: WebSocketDelegate {
-    let PORT = 5810
     let RTT_PERIOD_MS_V40 = 1000
     let RTT_PERIOD_MS_V41 = 250
     let TIMEOUT_MS_V40 = 5000
@@ -38,12 +37,12 @@ class NT4Client: WebSocketDelegate {
         self.onDisconnect = onDisconnect
     }
 
-    func connect(serverBaseAddr: String){
+    func connect(serverBaseAddr: String, port: String = "5810"){
         if serverConnectionActive {
             return
         }
         serverConnectionRequested = true
-        let serverAddr = "ws://" + serverBaseAddr + ":" + String(PORT) + "/nt/" + appName
+        let serverAddr = "ws://" + serverBaseAddr + ":" + port + "/nt/" + appName
         NSLog("Connecting to \(serverAddr)")
         let url = URL(string: serverAddr)!
         let urlRequest = URLRequest(url: url)

@@ -3,7 +3,7 @@ import ARKit
 import SceneKit
 import SceneKit.ModelIO
 
-class RootViewController: UIViewController, UIGestureRecognizerDelegate {
+class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessionDelegate {
     var sceneView: ARSceneView!
     var fieldNode: SCNNode!
     var robotNode: SCNNode!
@@ -13,6 +13,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
     var NTHandler: NetworkTablesHandler!
 
     var statusLabel: PaddedLabel!
+    var instructionLabel: PaddedLabel!
 
     override func loadView() {
         super.loadView()
@@ -20,10 +21,34 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         sceneView = ARSceneView(frame: UIScreen.main.bounds)
         sceneView.autoenablesDefaultLighting = true
         self.view.addSubview(sceneView)
+
+        instructionLabel = PaddedLabel()
+        instructionLabel.font = UIFont.systemFont(ofSize: 18)
+        instructionLabel.textColor = UIColor.white
+        instructionLabel.backgroundColor = UIColor.darkGray.withAlphaComponent(0.8)
+        instructionLabel.text = "Move iPhone to start"
+        instructionLabel.translatesAutoresizingMaskIntoConstraints = false
+        instructionLabel.layer.cornerRadius = 10
+        instructionLabel.layer.masksToBounds = true
+        instructionLabel.topInset = 10
+        instructionLabel.bottomInset = 10
+        instructionLabel.leftInset = 15
+        instructionLabel.rightInset = 15
+
+
+        
+        self.view.addSubview(instructionLabel)
+
+        NSLayoutConstraint.activate([
+            instructionLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            instructionLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10)
+        ])
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        sceneView.session.delegate = self
 
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = .horizontal
@@ -93,5 +118,25 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate {
         super.viewWillTransition(to: size, with: coordinator)
 
         sceneView.frame = CGRect(origin: .zero, size: size)
+    }
+
+    func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
+        instructionLabel.isHidden = false
+        switch camera.trackingState {
+            case .notAvailable:
+                instructionLabel.text = "Tracking not available"
+            case .limited(ARCamera.TrackingState.Reason.initializing):
+                instructionLabel.text = "Move phone to start"
+            case .limited(ARCamera.TrackingState.Reason.excessiveMotion):
+                instructionLabel.text = "Slow down movement"
+            case .limited(ARCamera.TrackingState.Reason.insufficientFeatures):
+                instructionLabel.text = "More light or texture needed"
+            case .limited(ARCamera.TrackingState.Reason.relocalizing):
+                instructionLabel.text = "Relocalizing"
+            case .limited(_):
+                instructionLabel.text = "Move phone to start"
+            case .normal:
+                instructionLabel.isHidden = true
+        }
     }
 }

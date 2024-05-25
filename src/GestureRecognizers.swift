@@ -61,25 +61,9 @@ extension RootViewController {
     }
 
     @objc func openConfig(sender: UITapGestureRecognizer) {
-        let alert = UIAlertController(title: "Configuration", message: "Configure GearGlimpse", preferredStyle: .alert)
-        alert.addTextField { (textField) in
-            textField.placeholder = "IP Address"
-            textField.text = UserDefaults.standard.string(forKey: "ip")
-        }
-        alert.addTextField { (textField) in
-            textField.placeholder = "Robot Key"
-            textField.text = UserDefaults.standard.string(forKey: "robotKey")
-        }
-        let connected = NTHandler.client.serverConnectionActive
-        alert.addAction(UIAlertAction(title: connected ? "Reconnect" : "Connect", style: .default, handler: { [weak alert] (_) in
-            let ipField = alert?.textFields![0]
-            let robotKeyField = alert?.textFields![1]
-            self.NTHandler.ip = ipField!.text
-            self.NTHandler.robotKey = robotKeyField!.text
-            self.NTHandler.connect()
-            UserDefaults.standard.set(ipField!.text!, forKey: "ip")
-            UserDefaults.standard.set(robotKeyField!.text!, forKey: "robotKey")
-        }))
-        self.present(alert, animated: true, completion: nil)
+        let configViewController = ConfigViewController()
+        let navigationController = UINavigationController(rootViewController: configViewController)
+        configViewController.NTHandler = NTHandler
+        present(navigationController, animated: true, completion: nil)
     }
 }
