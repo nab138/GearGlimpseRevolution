@@ -57,6 +57,7 @@ class NetworkTablesHandler {
         }
         if client.serverConnectionActive {
             self.statusLabel.text = "NT: Disconnected"
+            self.statusLabel.backgroundColor = UIColor.red.withAlphaComponent(0.4)
             client.disconnect()
         }
         client.connect(serverBaseAddr: ip!, port: port ?? "5810");
