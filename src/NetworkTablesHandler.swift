@@ -56,6 +56,7 @@ class NetworkTablesHandler {
             return
         }
         if client.serverConnectionActive {
+            self.statusLabel.text = "NT: Disconnected"
             client.disconnect()
         }
         client.connect(serverBaseAddr: ip!, port: port ?? "5810");
