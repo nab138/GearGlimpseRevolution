@@ -16,7 +16,7 @@ class NetworkTablesHandler {
     init(robotNode: SCNNode, statusLabel: UILabel) {
         self.robotNode = robotNode
         self.statusLabel = statusLabel
-        client = NT4Client(appName: "ARKit", onTopicAnnounce: { topic in
+        client = NT4Client(appName: "GearGlimpse", onTopicAnnounce: { topic in
             NSLog("Announced topic: \(topic.name)")
         }, onTopicUnannounce: { topic in
             NSLog("Unannounced topic: \(topic.name)")
@@ -38,7 +38,16 @@ class NetworkTablesHandler {
             self.statusLabel.text = "NT: Disconnected"
             self.statusLabel.backgroundColor = UIColor.red.withAlphaComponent(0.4)
         })
-        ip = UserDefaults.standard.string(forKey: "ip")
+
+        let manualAddress = UserDefaults.standard.bool(forKey: "manualAddress")
+        if manualAddress {
+            ip = UserDefaults.standard.string(forKey: "ip")
+        } else {
+            let teamNumber = UserDefaults.standard.string(forKey: "teamNumber")
+            if teamNumber != nil {
+                ip = "roborio-\(teamNumber!)-frc.local"
+            }
+        }
         port = UserDefaults.standard.string(forKey: "port")
         if port == nil {
             port = "5810"
