@@ -5,7 +5,6 @@ import SceneKit.ModelIO
 
 class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessionDelegate {
     var sceneView: ARSceneView!
-    var fieldNode: SCNNode!
     var robotNode: SCNNode!
 
     var hasPlacedField = false
@@ -54,25 +53,17 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         configuration.planeDetection = .horizontal
         sceneView.session.run(configuration)
 
-        guard let field = sceneView.loadModelFromName("Field3d_2024") else {
+        guard let field = sceneView.loadModelFromResources("Field3d_2024") else {
             NSLog("Failed to load field model")
             return
         }
-        fieldNode = field
-        fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
+        sceneView.fieldNode = field
+        sceneView.fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
         NSLog("Field loaded successfully")
         
         // Load the robot, it should be relative to the field. 0,0 should be the center of the field
-        guard let robot = sceneView.loadModelFromName("Robot") else {
-            NSLog("Failed to load robot model")
-            return
-        }
-        robotNode = robot
-        // Create a dummy node so that I can offset the position of the robot
-        let dummyNode = SCNNode()
-        dummyNode.position = SCNVector3(0.35, -0.35, -0.875)
-        dummyNode.addChildNode(robotNode)
-        fieldNode.addChildNode(dummyNode)
+        let robotName = UserDefaults.standard.string(forKey: "selectedRobotName") ?? "R0xstar (3044)"
+        loadRobot(name: robotName)
         
         addGestureRecognizers()
         statusLabel = PaddedLabel()
@@ -124,6 +115,20 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
                 openSettingsLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
             ])
         }
+    }
+
+    func loadRobot(name: String){
+        // if robotNode already exists, remove it
+        if robotNode != nil {
+            robotNode.removeFromParentNode()
+            
+        }
+        guard let robot = sceneView.loadRobot(Robot.getByName(name)) else {
+            NSLog("Failed to load robot model")
+            return
+        }
+        NSLog("Robot loaded successfully")
+        robotNode = robot
     }
 
     // Done to allow rotation and pinch gestures to work simultaneously

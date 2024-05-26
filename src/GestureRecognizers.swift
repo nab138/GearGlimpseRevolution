@@ -38,10 +38,10 @@ extension RootViewController {
         }
 
         let position = SCNVector3(result.worldTransform.columns.3.x, result.worldTransform.columns.3.y, result.worldTransform.columns.3.z)
-        fieldNode.position = position
+        sceneView.fieldNode.position = position
 
         if(!hasPlacedField){
-            sceneView.scene.rootNode.addChildNode(fieldNode)
+            sceneView.scene.rootNode.addChildNode(sceneView.fieldNode)
             hasPlacedField = true
         }
     }
@@ -49,13 +49,13 @@ extension RootViewController {
     @objc func handleRotate(sender: UIRotationGestureRecognizer) {
         let rotation = Float(sender.rotation)
         // Update the field rotation relatively
-        fieldNode.eulerAngles.y -= rotation
+        sceneView.fieldNode.eulerAngles.y -= rotation
         sender.rotation = 0.0
     }
 
     @objc func handlePinch(sender: UIPinchGestureRecognizer) {
         let scale = Float(sender.scale)
-        fieldNode.scale = SCNVector3(fieldNode.scale.x * scale, fieldNode.scale.y * scale, fieldNode.scale.z * scale)
+        sceneView.fieldNode.scale = SCNVector3(sceneView.fieldNode.scale.x * scale, sceneView.fieldNode.scale.y * scale, sceneView.fieldNode.scale.z * scale)
     
         sender.scale = 1.0
     }
@@ -64,7 +64,8 @@ extension RootViewController {
         let configViewController = ConfigViewController()
         let navigationController = UINavigationController(rootViewController: configViewController)
         configViewController.NTHandler = NTHandler
-        configViewController.fieldNode = fieldNode
+        configViewController.fieldNode = sceneView.fieldNode
+        configViewController.controller = self
         UIView.animate(withDuration: 0.2) {
             self.openSettingsLabel.alpha = 0
         } completion: { _ in

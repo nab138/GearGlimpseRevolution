@@ -23,14 +23,23 @@ jobs:
           cache-dir-theos: ${{ github.workspace }}/theos
           cache-dir-sdks: ${{ github.workspace }}/theos/sdks
 
-      - name: Download Robot Model
+      - name: Download 3044 Robot Model
         uses: robinraju/release-downloader@v1.10
         with:
           tarBall: false
           zipBall: false
           out-file-path: "Resources"
-          tag: "assets"
-          fileName: "Robot.usdz"
+          tag: "assets-v2"
+          fileName: "R0xstar.usdz"
+
+      - name: Download KitBot Robot Model
+        uses: robinraju/release-downloader@v1.10
+        with:
+          tarBall: false
+          zipBall: false
+          out-file-path: "Resources"
+          tag: "assets-v2"
+          fileName: "2024KitBot.usdz"
 
       - name: Build
         run: |

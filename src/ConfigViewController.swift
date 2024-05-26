@@ -6,6 +6,7 @@ enum CellType {
     case textField(placeholder: String, defaultValue: String?, keyboardType: UIKeyboardType = .default)
     case toggleSwitch(label: String, defaultValue: Bool = false)
     case button(label: String, action: () -> Void)
+    case robotConfig(robot: Robot)
 }
 
 struct Row {
@@ -13,16 +14,18 @@ struct Row {
 }
 
 
-class ConfigViewController: UITableViewController {
-    var ipTextField: UITextField!
-    var portTextField: UITextField!
-    var robotKeyTextField: UITextField!
+class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     var NTHandler: NetworkTablesHandler!
     var fieldNode: SCNNode!
+    var controller: RootViewController!
     var actions = [IndexPath: () -> Void]()
 
     var cellViews: [IndexPath: UIView] = [:]
-        var sections: [[Row]] = []
+    var sections: [[Row]] = []
+
+    var selectedRobotName: String?
+
+    var activityIndicator: UIActivityIndicatorView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -35,12 +38,14 @@ class ConfigViewController: UITableViewController {
                 Row(type: .toggleSwitch(label: "Use Manual Address", defaultValue: UserDefaults.standard.bool(forKey: "manualAddress")))
             ],
             [
-                Row(type: .textField(placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey"))),
-            ],
-            [
                 Row(type: .button(label: "Set Full-Size Field", action: {
                     self.fieldNode.scale = SCNVector3(1, 1, 1)
                 })),
+            ],
+            [
+                Row(type: .textField(placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey"))),
+                Row(type: .robotConfig(robot: Robot.robot3044)),
+                Row(type: .robotConfig(robot: Robot.kitBot)),
             ],
             [
                 Row(type: .button(label: "Clear Saved Data", action: {
@@ -49,6 +54,10 @@ class ConfigViewController: UITableViewController {
                 })),
             ]
         ]
+
+        if let robotName = UserDefaults.standard.string(forKey: "selectedRobotName") {
+            selectedRobotName = robotName
+        }
 
         title = "Settings"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(saveSettings))
@@ -104,8 +113,26 @@ class ConfigViewController: UITableViewController {
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.cellTapped(_:)))
             cell.addGestureRecognizer(tapGesture)
             actions[indexPath] = action
+        case .robotConfig(let robot):
+            cell.textLabel?.text = robot.name
+            cell.selectionStyle = .default
+            cell.isUserInteractionEnabled = true
+            cell.accessoryType = (robot.name == selectedRobotName) ? .checkmark : .none
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.robotCellTapped(_:)))
+            cell.addGestureRecognizer(tapGesture)
         }
         return cell
+    }
+
+    @objc func robotCellTapped(_ sender: UITapGestureRecognizer) {
+        let cell = sender.view as! UITableViewCell
+        if let indexPath = tableView.indexPath(for: cell) {
+            let row = sections[indexPath.section][indexPath.row]
+            if case .robotConfig(let robot) = row.type {
+                selectedRobotName = robot.name
+                tableView.reloadData()
+            }
+        }
     }
 
     @objc func cellTapped(_ sender: UITapGestureRecognizer) {
@@ -124,9 +151,9 @@ class ConfigViewController: UITableViewController {
         case 0:
             return "Connection Settings"
         case 1:
-            return "Robot Settings"
-        case 2:
             return "AR Settings"
+        case 2:
+            return "Robot Settings"
         case 3:
             return "Developer Settings"
         default:
@@ -139,7 +166,7 @@ class ConfigViewController: UITableViewController {
         let ipTextField = cellViews[IndexPath(row: 1, section: 0)] as? UITextField
         let portTextField = cellViews[IndexPath(row: 2, section: 0)] as? UITextField
         let manualAddressSwitch = cellViews[IndexPath(row: 3, section: 0)] as? UISwitch
-        let robotKeyTextField = cellViews[IndexPath(row: 0, section: 1)] as? UITextField
+        let robotKeyTextField = cellViews[IndexPath(row: 0, section: 2)] as? UITextField
         
         if manualAddressSwitch?.isOn ?? false {
             NTHandler.ip = ipTextField?.text
@@ -156,6 +183,16 @@ class ConfigViewController: UITableViewController {
         UserDefaults.standard.set(robotKeyTextField?.text, forKey: "robotKey")
         UserDefaults.standard.set(manualAddressSwitch?.isOn, forKey: "manualAddress")
         UserDefaults.standard.synchronize()
+        if let selectedRobotName = selectedRobotName {
+            if selectedRobotName != UserDefaults.standard.string(forKey: "selectedRobotName") {
+                UserDefaults.standard.set(selectedRobotName, forKey: "selectedRobotName")
+
+                // Load the robot
+                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                    self?.controller.loadRobot(name: selectedRobotName)
+                }
+            }
+        }
 
         NTHandler.connect()
 
