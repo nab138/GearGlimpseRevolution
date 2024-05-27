@@ -1,5 +1,7 @@
 # GearGlimpse Revolution
 
+[![Build GearGlimpseRevolution](https://github.com/nab138/GearGlimpseRevolution/actions/workflows/ci.yml/badge.svg)](https://github.com/nab138/GearGlimpseRevolution/actions/workflows/ci.yml)
+
 iOS AR Frc tools!
 
 Powered by [theos](https://theos.dev)
