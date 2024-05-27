@@ -26,3 +26,14 @@ To import a custom robot, convert it to a .usdz file, then you can import it fro
 4. Run `make package` to build an ipa
 
 If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/bin, you can run deploy.sh to automatically build and install to your ios device.
+
+# Roadmap
+
+- [x] Basic field placement
+- [x] Networktables support
+- [x] Robot switching
+- [x] Custom robot import
+- [x] Transparent/Invisible Field
+- [ ] Field Switcher
+- [ ] Field Element Placement
+- [ ] Trajectory Rendering

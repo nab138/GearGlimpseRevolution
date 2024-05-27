@@ -273,7 +273,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             url.stopAccessingSecurityScopedResource()
         }
         
-        tableView.reloadData()
+        refreshViewWithoutClearingData()
     }
 
     @objc func robotCellTapped(_ sender: UITapGestureRecognizer) {
@@ -283,11 +283,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             if case .robotConfig(let robot) = row.type {
                 selectedRobotName = robot.name
                 customRobotSelected = false
-                tableView.reloadData()
+                refreshViewWithoutClearingData()
             } else if case .customRobotConfig = row.type {
                 selectedRobotName = customRobot?.name
                 customRobotSelected = true
-                tableView.reloadData()
+                refreshViewWithoutClearingData()
             }
         }
     }
@@ -373,8 +373,12 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         let rotations = SCNVector3(xRot, yRot, zRot)
 
         if customRobotSelected {
-            customRobot?.positionOffset = offset
-            customRobot?.rotations = rotations
+            if xOffsetCorrect && yOffsetCorrect && zOffsetCorrect {
+                customRobot?.positionOffset = offset
+            }
+            if xRotCorrect && yRotCorrect && zRotCorrect {
+                customRobot?.rotations = rotations
+            }
         }
 
 
@@ -427,5 +431,37 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
 
     @objc func dismissKeyboard() {
         view.endEditing(true)
+    }
+
+    func refreshViewWithoutClearingData() {
+        let teamNumber = (cellViews[IndexPath(row: 0, section: 0)] as? UITextField)?.text
+        let ip = (cellViews[IndexPath(row: 1, section: 0)] as? UITextField)?.text
+        let port = (cellViews[IndexPath(row: 2, section: 0)] as? UITextField)?.text
+        let manualIp = (cellViews[IndexPath(row: 3, section: 0)] as? UISwitch)?.isOn
+        let visible = (cellViews[IndexPath(row: 1, section: 1)] as? UISwitch)?.isOn
+        let transparent = (cellViews[IndexPath(row: 2, section: 1)] as? UISwitch)?.isOn
+        let robotKey = (cellViews[IndexPath(row: 0, section: 2)] as? UITextField)?.text
+        let xOffset = (cellViews[IndexPath(row: 1, section: 3)] as? UITextField)?.text
+        let yOffset = (cellViews[IndexPath(row: 2, section: 3)] as? UITextField)?.text
+        let zOffset = (cellViews[IndexPath(row: 3, section: 3)] as? UITextField)?.text
+        let xRot = (cellViews[IndexPath(row: 4, section: 3)] as? UITextField)?.text
+        let yRot = (cellViews[IndexPath(row: 5, section: 3)] as? UITextField)?.text
+        let zRot = (cellViews[IndexPath(row: 6, section: 3)] as? UITextField)?.text
+
+        tableView.reloadData()
+
+        (cellViews[IndexPath(row: 0, section: 0)] as? UITextField)?.text = teamNumber
+        (cellViews[IndexPath(row: 1, section: 0)] as? UITextField)?.text = ip
+        (cellViews[IndexPath(row: 2, section: 0)] as? UITextField)?.text = port
+        (cellViews[IndexPath(row: 3, section: 0)] as? UISwitch)?.isOn = manualIp ?? false
+        (cellViews[IndexPath(row: 1, section: 1)] as? UISwitch)?.isOn = visible ?? false
+        (cellViews[IndexPath(row: 2, section: 1)] as? UISwitch)?.isOn = transparent ?? false
+        (cellViews[IndexPath(row: 0, section: 2)] as? UITextField)?.text = robotKey
+        (cellViews[IndexPath(row: 1, section: 3)] as? UITextField)?.text = xOffset
+        (cellViews[IndexPath(row: 2, section: 3)] as? UITextField)?.text = yOffset
+        (cellViews[IndexPath(row: 3, section: 3)] as? UITextField)?.text = zOffset
+        (cellViews[IndexPath(row: 4, section: 3)] as? UITextField)?.text = xRot
+        (cellViews[IndexPath(row: 5, section: 3)] as? UITextField)?.text = yRot
+        (cellViews[IndexPath(row: 6, section: 3)] as? UITextField)?.text = zRot
     }
 }
