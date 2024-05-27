@@ -71,7 +71,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         
         // Load the robot, it should be relative to the field. 0,0 should be the center of the field
         if !UserDefaults.standard.bool(forKey: "customRobotSelected") {
-            let robotName = UserDefaults.standard.string(forKey: "selectedRobotName") ?? "R0xstar (3044)"
+            let robotName = UserDefaults.standard.string(forKey: "selectedRobotName") ?? "2024 KitBot"
             loadRobot(name: robotName)
         } else {
             let robotName = UserDefaults.standard.string(forKey: "customRobotName") ?? "Custom Robot"
@@ -98,11 +98,11 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
                     let robot = Robot(url: bookmarkURL, name: robotName, positionOffset: robotOffset, rotations: rotationOffset)
                     loadRobot(robot: robot)                    
                 } catch {
-                    print("Failed to resolve bookmark: \(error)")
-                    loadRobot(name: "R0xstar (3044)")
+                    NSLog("Failed to resolve bookmark: \(error)")
+                    loadRobot(name: "2024 KitBot")
                 }
             } else {
-                loadRobot(name: "R0xstar (3044)")
+                loadRobot(name: "2024 KitBot")
             }
         }
 

@@ -23,7 +23,7 @@ struct Robot {
         case "2024 KitBot":
             return kitBot
         default:
-            return robot3044
+            return kitBot
         }
     }
 }

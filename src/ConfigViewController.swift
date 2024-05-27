@@ -52,8 +52,8 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             ],
             [
                 Row(type: .textField(placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey"))),
-                Row(type: .robotConfig(robot: Robot.robot3044)),
                 Row(type: .robotConfig(robot: Robot.kitBot)),
+                Row(type: .robotConfig(robot: Robot.robot3044)),
                 Row(type: .customRobotConfig),
             ],
             [
@@ -69,6 +69,8 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
                 Row(type: .button(label: "Clear Saved Data", action: {
                     let appDomain = Bundle.main.bundleIdentifier!
                     UserDefaults.standard.removePersistentDomain(forName: appDomain)
+                    UserDefaults.standard.synchronize()
+                    exit(0)
                 })),
             ]
         ]
@@ -76,7 +78,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         if let robotName = UserDefaults.standard.string(forKey: "selectedRobotName") {
             selectedRobotName = robotName
         } else {
-            selectedRobotName = "R0xstar (3044)"
+            selectedRobotName = "2024 KitBot"
             UserDefaults.standard.set(selectedRobotName, forKey: "selectedRobotName")
         }
 
@@ -410,9 +412,8 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
                 (yRotCorrect && yRot != UserDefaults.standard.float(forKey: "yRot")) ||
                 (zRotCorrect && zRot != UserDefaults.standard.float(forKey: "zRot")) {
                     UserDefaults.standard.set(selectedRobotName, forKey: "selectedRobotName")
-
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                        self?.controller.loadRobot(robot: self?.customRobot ?? Robot.robot3044)    
+                        self?.controller.loadRobot(robot: self?.customRobot ?? Robot.kitBot)    
                     }
                 }
             } else {
@@ -441,5 +442,18 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
 
     @objc func dismissKeyboard() {
         view.endEditing(true)
+    }
+
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        switch section {
+        case 0:
+            return "Manual address can used to connect to the simulator."
+        case 1:
+            return "Tap on a flat plane to place the field"
+        case 2:
+            return "When importing a custom robot for the first time, you may need to restart the app for it to appear."
+        default:
+            return nil
+        }
     }
 }
