@@ -447,9 +447,9 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         switch section {
         case 0:
-            return "Manual address can used to connect to the simulator."
+            return "Manual address is used to connect to the simulator."
         case 1:
-            return "Tap on a flat plane to place the field"
+            return "Tap on a flat plane to place the field."
         case 2:
             return "When importing a custom robot for the first time, you may need to restart the app for it to appear."
         default:
