@@ -34,6 +34,8 @@ If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/
 - [x] Robot switching
 - [x] Custom robot import
 - [x] Transparent/Invisible Field
+- [ ] Trajectory Rendering
 - [ ] Field Switcher
 - [ ] Field Element Placement
-- [ ] Trajectory Rendering
+- [ ] Mechanism Rendering (maybe)
+- [ ] Alignment with real field via AprilTags (probably not)
