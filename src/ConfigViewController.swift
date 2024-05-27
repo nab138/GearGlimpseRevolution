@@ -44,9 +44,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
                 Row(type: .toggleSwitch(label: "Use Manual Address", defaultValue: UserDefaults.standard.bool(forKey: "manualAddress")))
             ],
             [
-                Row(type: .button(label: "Set Full-Size Field", action: {
+                Row(type: .button(label: "Set to full size", action: {
                     self.fieldNode.scale = SCNVector3(1, 1, 1)
                 })),
+                Row(type: .toggleSwitch(label: "Visible", defaultValue: UserDefaults.standard.bool(forKey: "fieldVisible"))),
+                Row(type: .toggleSwitch(label: "Transparent", defaultValue: UserDefaults.standard.bool(forKey: "fieldTransparent")))
             ],
             [
                 Row(type: .textField(placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey"))),
@@ -195,12 +197,24 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             textField.keyboardType = .decimalPad
             let toolbar = UIToolbar()
             toolbar.sizeToFit()
+
+            let width = UIScreen.main.bounds.width
+            var frame = toolbar.frame
+            frame.size.width = width
+            toolbar.frame = frame
+
+            let spaceBarButton = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
             let plusMinusButton = UIBarButtonItem(title: "+/-", style: .done, target: self, action: #selector(self.plusMinusAction(_:)))
-            plusMinusButton.tintColor = .black
+            plusMinusButton.tintColor = .label
             plusMinusButton.width = UIScreen.main.bounds.width / 3
-            toolbar.items = [plusMinusButton]
-            toolbar.isTranslucent = false
-            textField.inputAccessoryView = toolbar
+            toolbar.items = [spaceBarButton, plusMinusButton]
+
+            toolbar.setBackgroundImage(UIImage(), forToolbarPosition: .any, barMetrics: .default)
+            toolbar.backgroundColor = UIColor.clear
+
+            let inputView = UIInputView(frame: toolbar.bounds, inputViewStyle: .keyboard)
+            inputView.addSubview(toolbar)
+            textField.inputAccessoryView = inputView
 
             textField.translatesAutoresizingMaskIntoConstraints = false
             cell.contentView.addSubview(textField)
@@ -213,7 +227,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
                 textField.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
                 textField.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor)
             ])
-            cellViews[indexPath] = textField
+            cellViews[indexPath] = textField  
         }
         return cell
     }
@@ -319,6 +333,16 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             NTHandler.ip = "roborio-" + (teamNumberTextField?.text ?? "") + "-frc.local"
         }
 
+        let fieldVisibleSwitch = cellViews[IndexPath(row: 1, section: 1)] as? UISwitch
+        let fieldTransparentSwitch = cellViews[IndexPath(row: 2, section: 1)] as? UISwitch
+
+        UserDefaults.standard.set(fieldVisibleSwitch?.isOn, forKey: "fieldVisible")
+        UserDefaults.standard.set(fieldTransparentSwitch?.isOn, forKey: "fieldTransparent")
+
+        // Make field visible or invisible without affecting child nodes
+        fieldNode.isHidden = !(fieldVisibleSwitch?.isOn ?? false)
+        fieldNode.opacity = (fieldTransparentSwitch?.isOn ?? false) ? 0.5 : 1.0
+
         NTHandler.port = portTextField?.text
         NTHandler.robotKey = robotKeyTextField?.text
 
@@ -326,16 +350,22 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         let yOffsetTextField = cellViews[IndexPath(row: 2, section: 3)] as? UITextField
         let zOffsetTextField = cellViews[IndexPath(row: 3, section: 3)] as? UITextField
 
+        let xRotTextField = cellViews[IndexPath(row: 4, section: 3)] as? UITextField
+        let yRotTextField = cellViews[IndexPath(row: 5, section: 3)] as? UITextField
+        let zRotTextField = cellViews[IndexPath(row: 6, section: 3)] as? UITextField
+
+        let xOffsetCorrect = xOffsetTextField?.text != nil && Float((xOffsetTextField?.text)!) != nil
+        let yOffsetCorrect = yOffsetTextField?.text != nil && Float((yOffsetTextField?.text)!) != nil
+        let zOffsetCorrect = zOffsetTextField?.text != nil && Float((zOffsetTextField?.text)!) != nil
         let xOffset = Float(xOffsetTextField?.text ?? "0") ?? 0
         let yOffset = Float(yOffsetTextField?.text ?? "0") ?? 0
         let zOffset = Float(zOffsetTextField?.text ?? "0") ?? 0
 
         let offset = SCNVector3(xOffset, yOffset, zOffset)
 
-        let xRotTextField = cellViews[IndexPath(row: 4, section: 3)] as? UITextField
-        let yRotTextField = cellViews[IndexPath(row: 5, section: 3)] as? UITextField
-        let zRotTextField = cellViews[IndexPath(row: 6, section: 3)] as? UITextField
-
+        let xRotCorrect = xRotTextField?.text != nil && Float((xRotTextField?.text)!) != nil
+        let yRotCorrect = yRotTextField?.text != nil && Float((yRotTextField?.text)!) != nil
+        let zRotCorrect = zRotTextField?.text != nil && Float((zRotTextField?.text)!) != nil
         let xRot = Float(xRotTextField?.text ?? "0") ?? 0
         let yRot = Float(yRotTextField?.text ?? "0") ?? 0
         let zRot = Float(zRotTextField?.text ?? "0") ?? 0
@@ -359,12 +389,12 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         if let selectedRobotName = selectedRobotName {
             if customRobotSelected {
                 if selectedRobotName != UserDefaults.standard.string(forKey: "selectedRobotName") || 
-                xOffset != UserDefaults.standard.float(forKey: "xOffset") || 
-                yOffset != UserDefaults.standard.float(forKey: "yOffset") || 
-                zOffset != UserDefaults.standard.float(forKey: "zOffset") ||
-                xRot != UserDefaults.standard.float(forKey: "xRot") ||
-                yRot != UserDefaults.standard.float(forKey: "yRot") ||
-                zRot != UserDefaults.standard.float(forKey: "zRot") {
+                (xOffsetCorrect && xOffset != UserDefaults.standard.float(forKey: "xOffset")) || 
+                (yOffsetCorrect && yOffset != UserDefaults.standard.float(forKey: "yOffset")) || 
+                (zOffsetCorrect && zOffset != UserDefaults.standard.float(forKey: "zOffset")) ||
+                (xRotCorrect && xRot != UserDefaults.standard.float(forKey: "xRot")) ||
+                (yRotCorrect && yRot != UserDefaults.standard.float(forKey: "yRot")) ||
+                (zRotCorrect && zRot != UserDefaults.standard.float(forKey: "zRot")) {
                     UserDefaults.standard.set(selectedRobotName, forKey: "selectedRobotName")
 
                     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
@@ -381,12 +411,12 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             }
         }
 
-        UserDefaults.standard.set(xOffset, forKey: "xOffset")
-        UserDefaults.standard.set(yOffset, forKey: "yOffset")
-        UserDefaults.standard.set(zOffset, forKey: "zOffset")
-        UserDefaults.standard.set(xRot, forKey: "xRot")
-        UserDefaults.standard.set(yRot, forKey: "yRot")
-        UserDefaults.standard.set(zRot, forKey: "zRot")
+        if xOffsetCorrect {UserDefaults.standard.set(xOffset, forKey: "xOffset")}
+        if yOffsetCorrect {UserDefaults.standard.set(yOffset, forKey: "yOffset")}
+        if zOffsetCorrect {UserDefaults.standard.set(zOffset, forKey: "zOffset")}
+        if xRotCorrect {UserDefaults.standard.set(xRot, forKey: "xRot")}
+        if yRotCorrect {UserDefaults.standard.set(yRot, forKey: "yRot")}
+        if zRotCorrect {UserDefaults.standard.set(zRot, forKey: "zRot")}
 
         UserDefaults.standard.synchronize()
 

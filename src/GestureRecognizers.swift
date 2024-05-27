@@ -39,10 +39,12 @@ extension RootViewController {
 
         let position = SCNVector3(result.worldTransform.columns.3.x, result.worldTransform.columns.3.y, result.worldTransform.columns.3.z)
         sceneView.fieldNode.position = position
+        sceneView.updateRobotNodeTransform()
 
         if(!hasPlacedField){
             sceneView.scene.rootNode.addChildNode(sceneView.fieldNode)
             hasPlacedField = true
+            sceneView.curContainerDummyNode?.isHidden = false
         }
     }
 
@@ -51,6 +53,7 @@ extension RootViewController {
         // Update the field rotation relatively
         sceneView.fieldNode.eulerAngles.y -= rotation
         sender.rotation = 0.0
+                sceneView.updateRobotNodeTransform()
     }
 
     @objc func handlePinch(sender: UIPinchGestureRecognizer) {
@@ -58,6 +61,7 @@ extension RootViewController {
         sceneView.fieldNode.scale = SCNVector3(sceneView.fieldNode.scale.x * scale, sceneView.fieldNode.scale.y * scale, sceneView.fieldNode.scale.z * scale)
     
         sender.scale = 1.0
+        sceneView.updateRobotNodeTransform()
     }
 
     @objc func openConfig(sender: UITapGestureRecognizer) {

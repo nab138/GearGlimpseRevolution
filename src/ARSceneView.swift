@@ -34,6 +34,8 @@ class ARSceneView: ARSCNView {
     var curContainerDummyNode: SCNNode?
     var curRobotNode: SCNNode?
 
+    var referenceNode: SCNNode?
+
     func loadModelFromResources(_ name: String) -> SCNNode? {
         let url = Bundle.main.url(forResource: name, withExtension: "usdz")!
         return loadModelFromURL(url)
@@ -59,8 +61,12 @@ class ARSceneView: ARSCNView {
         if let curContainerDummyNode = curContainerDummyNode {
             curContainerDummyNode.removeFromParentNode()
         }
+        if let referenceNode = referenceNode {
+            referenceNode.removeFromParentNode()
+        }
         curRobotNode = robotNode
         // This is used to rotate the translated model
+        referenceNode = SCNNode()
         let dummyNode = SCNNode()
         // This is used to provide an easy container where other code can just translate and rotate the container
         let containerDummyNode = SCNNode()
@@ -71,8 +77,25 @@ class ARSceneView: ARSCNView {
         dummyNode.eulerAngles = radianRotations
         dummyNode.addChildNode(robotNode)
         containerDummyNode.addChildNode(dummyNode)
-        fieldNode.addChildNode(containerDummyNode)
+        scene.rootNode.addChildNode(containerDummyNode)
+        fieldNode.addChildNode(referenceNode!)
+        updateRobotNodeTransform()
         NSLog("Successfully loaded robot with name: \(robot.name)")
-        return containerDummyNode
+        return referenceNode
+    }
+
+    func updateRobotNodeTransform() {
+        if let referenceNode = referenceNode {
+            // Convert position from referenceNode's coordinate space to world coordinate space
+            let positionInWorld = fieldNode.convertPosition(referenceNode.position, to: nil)
+
+            // Convert rotation from referenceNode's coordinate space to world coordinate space
+            let rotationInWorld = referenceNode.worldOrientation
+
+            // Assign the world space position, rotation, and scale to curContainerDummyNode
+            curContainerDummyNode?.position = positionInWorld
+            curContainerDummyNode?.orientation = rotationInWorld
+            curContainerDummyNode?.scale = fieldNode.scale
+        }
     }
 }

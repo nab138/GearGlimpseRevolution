@@ -5,6 +5,7 @@ class NetworkTablesHandler {
     let fieldCenterY: Double = 4
 
     var client: NT4Client!
+    var sceneView: ARSceneView!
     var robotNode: SCNNode!
     var statusLabel: UILabel!
     var robotSubID: Int = -1
@@ -16,9 +17,10 @@ class NetworkTablesHandler {
     var lastPosition: SCNVector3 = SCNVector3(0, 0, 0)
     var lastRotation: Float = 0
 
-    init(robotNode: SCNNode, statusLabel: UILabel) {
+    init(robotNode: SCNNode, statusLabel: UILabel, sceneView: ARSceneView) {
         self.robotNode = robotNode
         self.statusLabel = statusLabel
+        self.sceneView = sceneView
         client = NT4Client(appName: "GearGlimpse", onTopicAnnounce: { topic in
             NSLog("Announced topic: \(topic.name)")
         }, onTopicUnannounce: { topic in
@@ -32,6 +34,7 @@ class NetworkTablesHandler {
                 self.lastPosition = self.robotNode.position
                 self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
                 self.lastRotation = self.robotNode.eulerAngles.y
+                self.sceneView?.updateRobotNodeTransform()
             }
         }, onConnect: {
             NSLog("Connected to NetworkTables")
@@ -68,6 +71,7 @@ class NetworkTablesHandler {
         robotNode = robot
         robotNode.position = lastPosition
         robotNode.eulerAngles.y = lastRotation
+        sceneView.updateRobotNodeTransform()
     }
 
     func connect() {

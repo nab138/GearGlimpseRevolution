@@ -60,6 +60,14 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         sceneView.fieldNode = field
         sceneView.fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
         NSLog("Field loaded successfully")
+
+        if UserDefaults.standard.object(forKey: "fieldVisible") == nil {
+            UserDefaults.standard.set(true, forKey: "fieldVisible")
+        }
+
+        sceneView.fieldNode.isHidden = !(UserDefaults.standard.bool(forKey: "fieldVisible"))
+        sceneView.fieldNode.opacity = UserDefaults.standard.bool(forKey: "fieldTransparent") ? 0.5 : 1.0
+
         
         // Load the robot, it should be relative to the field. 0,0 should be the center of the field
         if !UserDefaults.standard.bool(forKey: "customRobotSelected") {
@@ -97,6 +105,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
                 loadRobot(name: "R0xstar (3044)")
             }
         }
+
+        sceneView.curContainerDummyNode?.isHidden = true
         
         addGestureRecognizers()
         statusLabel = PaddedLabel()
@@ -123,7 +133,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
             statusLabel.heightAnchor.constraint(equalToConstant: 30)
         ])
 
-        NTHandler = NetworkTablesHandler(robotNode: robotNode, statusLabel: statusLabel)
+        NTHandler = NetworkTablesHandler(robotNode: robotNode, statusLabel: statusLabel, sceneView: sceneView)
         NTHandler.connect()
 
 
