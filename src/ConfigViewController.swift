@@ -7,6 +7,9 @@ enum CellType {
     case toggleSwitch(label: String, defaultValue: Bool = false)
     case button(label: String, action: () -> Void)
     case robotConfig(robot: Robot)
+    case customRobotConfig
+    case importRobot
+    case offsetField(label: String, defaultValue: String?)
 }
 
 struct Row {
@@ -27,6 +30,9 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
 
     var activityIndicator: UIActivityIndicatorView?
 
+    var customRobot: Robot?
+    var customRobotSelected = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -46,6 +52,16 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
                 Row(type: .textField(placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey"))),
                 Row(type: .robotConfig(robot: Robot.robot3044)),
                 Row(type: .robotConfig(robot: Robot.kitBot)),
+                Row(type: .customRobotConfig),
+            ],
+            [
+                Row(type: .importRobot),
+                Row(type: .offsetField(label: "X Offset", defaultValue: UserDefaults.standard.string(forKey: "xOffset") ?? "0")),
+                Row(type: .offsetField(label: "Y Offset", defaultValue: UserDefaults.standard.string(forKey: "yOffset") ?? "0")),
+                Row(type: .offsetField(label: "Z Offset", defaultValue: UserDefaults.standard.string(forKey: "zOffset") ?? "0")),
+                Row(type: .offsetField(label: "X Rot", defaultValue: UserDefaults.standard.string(forKey: "xRot") ?? "0")),
+                Row(type: .offsetField(label: "Y Rot", defaultValue: UserDefaults.standard.string(forKey: "yRot") ?? "0")),
+                Row(type: .offsetField(label: "Z Rot", defaultValue: UserDefaults.standard.string(forKey: "zRot") ?? "0")),
             ],
             [
                 Row(type: .button(label: "Clear Saved Data", action: {
@@ -59,6 +75,9 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             selectedRobotName = robotName
         }
 
+        loadCustomRobot()
+        customRobotSelected = UserDefaults.standard.bool(forKey: "customRobotSelected")
+
         title = "Settings"
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(saveSettings))
 
@@ -66,6 +85,36 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         tapGesture.cancelsTouchesInView = false
         tableView.addGestureRecognizer(tapGesture)
+    }
+
+    func loadCustomRobot(){
+        let robotName = UserDefaults.standard.string(forKey: "customRobotName") ?? "Custom Robot"
+        if let bookmarkData = UserDefaults.standard.data(forKey: "customRobotBookmarkData") {
+            var isStale = false
+            do {
+                let bookmarkURL = try URL(resolvingBookmarkData: bookmarkData, options: [], relativeTo: nil, bookmarkDataIsStale: &isStale)
+                if isStale {
+                    // The bookmark data is stale, so you need to create a new bookmark
+                    let newBookmarkData = try bookmarkURL.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+                    UserDefaults.standard.set(newBookmarkData, forKey: "customRobotBookmarkData")
+                }
+                loadCustomRobot(url: bookmarkURL, name: robotName)
+            } catch {
+                print("Failed to resolve bookmark: \(error)")
+            }
+        }
+    }
+
+    func loadCustomRobot(url: URL, name: String){
+        let offsetX = UserDefaults.standard.float(forKey: "xOffset")
+        let offsetY = UserDefaults.standard.float(forKey: "yOffset")
+        let offsetZ = UserDefaults.standard.float(forKey: "zOffset")
+        let xRot = UserDefaults.standard.float(forKey: "xRot")
+        let yRot = UserDefaults.standard.float(forKey: "yRot")
+        let zRot = UserDefaults.standard.float(forKey: "zRot")
+        let offsets = SCNVector3(offsetX, offsetY, offsetZ)
+        let rotations = SCNVector3(xRot, yRot, zRot)
+        customRobot = Robot(url: url, name: name, positionOffset: offsets, rotations: rotations)
     }
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -120,8 +169,97 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             cell.accessoryType = (robot.name == selectedRobotName) ? .checkmark : .none
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.robotCellTapped(_:)))
             cell.addGestureRecognizer(tapGesture)
+        case .customRobotConfig:
+            cell.textLabel?.text = customRobot?.name ?? "Custom Robot"
+            cell.selectionStyle = .default
+            cell.isUserInteractionEnabled = customRobot != nil
+            cell.accessoryType = (customRobot?.name == selectedRobotName) ? .checkmark : .none
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.robotCellTapped(_:)))
+            cell.addGestureRecognizer(tapGesture)
+        case .importRobot:
+            cell.textLabel?.text = "Import Robot"
+            cell.textLabel?.textColor = view.tintColor
+            cell.selectionStyle = .default
+            cell.isUserInteractionEnabled = true
+            let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.importRobotTapped(_:)))
+            cell.addGestureRecognizer(tapGesture)
+        case .offsetField(let label, let defaultValue):
+            let textField = UITextField()
+            let labelView = UILabel()
+            labelView.text = label
+            labelView.translatesAutoresizingMaskIntoConstraints = false
+            cell.contentView.addSubview(labelView)
+            cell.contentView.addSubview(textField)
+            textField.placeholder = "0"
+            textField.text = defaultValue
+            textField.keyboardType = .decimalPad
+            let toolbar = UIToolbar()
+            toolbar.sizeToFit()
+            let plusMinusButton = UIBarButtonItem(title: "+/-", style: .done, target: self, action: #selector(self.plusMinusAction(_:)))
+            plusMinusButton.tintColor = .black
+            plusMinusButton.width = UIScreen.main.bounds.width / 3
+            toolbar.items = [plusMinusButton]
+            toolbar.isTranslucent = false
+            textField.inputAccessoryView = toolbar
+
+            textField.translatesAutoresizingMaskIntoConstraints = false
+            cell.contentView.addSubview(textField)
+            NSLayoutConstraint.activate([
+                labelView.leadingAnchor.constraint(equalTo: cell.contentView.leadingAnchor, constant: 15),
+                labelView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+                
+                textField.leadingAnchor.constraint(equalTo: labelView.trailingAnchor, constant: 15),
+                textField.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -15),
+                textField.topAnchor.constraint(equalTo: cell.contentView.topAnchor),
+                textField.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor)
+            ])
+            cellViews[indexPath] = textField
         }
         return cell
+    }
+
+    @objc func plusMinusAction(_ sender: UIBarButtonItem) {
+        guard let cell = cellViews.first(where: { $0.value.isFirstResponder }) else { return }
+        guard let myField = cell.value as? UITextField else { return }
+        guard let text = myField.text else { return }
+        if text.hasPrefix("-") {
+            myField.text = String(text.suffix(text.count - 1))
+        } else {
+            myField.text = "-\(text)"
+        }
+    }
+
+    @objc func importRobotTapped(_ sender: UITapGestureRecognizer) {
+        guard let usdzType = UTType(filenameExtension: "usdz") else { return }
+        let documentPicker = UIDocumentPickerViewController(forOpeningContentTypes: [usdzType])
+        documentPicker.delegate = self
+        present(documentPicker, animated: true, completion: nil)
+    }
+
+    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+        guard let url = urls.first else { return }
+        let shouldStopAccessing = url.startAccessingSecurityScopedResource()
+        
+        
+        loadCustomRobot(url: url, name: url.lastPathComponent.replacingOccurrences(of: ".usdz", with: ""))
+        selectedRobotName = customRobot?.name
+        customRobotSelected = true
+        
+        // Store the URL as a bookmark to persist access to the file across app launches
+        do {
+            let bookmarkData = try url.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+            UserDefaults.standard.set(bookmarkData, forKey: "customRobotBookmarkData")
+        } catch {
+            print("Failed to create bookmark: \(error)")
+        }
+        
+        UserDefaults.standard.set(customRobot?.name, forKey: "customRobotName")
+        
+        if shouldStopAccessing {
+            url.stopAccessingSecurityScopedResource()
+        }
+        
+        tableView.reloadData()
     }
 
     @objc func robotCellTapped(_ sender: UITapGestureRecognizer) {
@@ -130,6 +268,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             let row = sections[indexPath.section][indexPath.row]
             if case .robotConfig(let robot) = row.type {
                 selectedRobotName = robot.name
+                customRobotSelected = false
+                tableView.reloadData()
+            } else if case .customRobotConfig = row.type {
+                selectedRobotName = customRobot?.name
+                customRobotSelected = true
                 tableView.reloadData()
             }
         }
@@ -151,10 +294,12 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         case 0:
             return "Connection Settings"
         case 1:
-            return "AR Settings"
+            return "Field Settings"
         case 2:
             return "Robot Settings"
         case 3:
+            return "Custom Robot Setup"
+        case 4:
             return "Developer Settings"
         default:
             return nil
@@ -177,22 +322,73 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         NTHandler.port = portTextField?.text
         NTHandler.robotKey = robotKeyTextField?.text
 
+        let xOffsetTextField = cellViews[IndexPath(row: 1, section: 3)] as? UITextField
+        let yOffsetTextField = cellViews[IndexPath(row: 2, section: 3)] as? UITextField
+        let zOffsetTextField = cellViews[IndexPath(row: 3, section: 3)] as? UITextField
+
+        let xOffset = Float(xOffsetTextField?.text ?? "0") ?? 0
+        let yOffset = Float(yOffsetTextField?.text ?? "0") ?? 0
+        let zOffset = Float(zOffsetTextField?.text ?? "0") ?? 0
+
+        let offset = SCNVector3(xOffset, yOffset, zOffset)
+
+        let xRotTextField = cellViews[IndexPath(row: 4, section: 3)] as? UITextField
+        let yRotTextField = cellViews[IndexPath(row: 5, section: 3)] as? UITextField
+        let zRotTextField = cellViews[IndexPath(row: 6, section: 3)] as? UITextField
+
+        let xRot = Float(xRotTextField?.text ?? "0") ?? 0
+        let yRot = Float(yRotTextField?.text ?? "0") ?? 0
+        let zRot = Float(zRotTextField?.text ?? "0") ?? 0
+
+        let rotations = SCNVector3(xRot, yRot, zRot)
+
+        if customRobotSelected {
+            customRobot?.positionOffset = offset
+            customRobot?.rotations = rotations
+        }
+
+
         UserDefaults.standard.set(teamNumberTextField?.text, forKey: "teamNumber")
         UserDefaults.standard.set(ipTextField?.text, forKey: "ip")
         UserDefaults.standard.set(portTextField?.text, forKey: "port")
         UserDefaults.standard.set(robotKeyTextField?.text, forKey: "robotKey")
         UserDefaults.standard.set(manualAddressSwitch?.isOn, forKey: "manualAddress")
-        UserDefaults.standard.synchronize()
-        if let selectedRobotName = selectedRobotName {
-            if selectedRobotName != UserDefaults.standard.string(forKey: "selectedRobotName") {
-                UserDefaults.standard.set(selectedRobotName, forKey: "selectedRobotName")
 
-                // Load the robot
-                DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                    self?.controller.loadRobot(name: selectedRobotName)
+        UserDefaults.standard.set(customRobotSelected, forKey: "customRobotSelected")
+
+        if let selectedRobotName = selectedRobotName {
+            if customRobotSelected {
+                if selectedRobotName != UserDefaults.standard.string(forKey: "selectedRobotName") || 
+                xOffset != UserDefaults.standard.float(forKey: "xOffset") || 
+                yOffset != UserDefaults.standard.float(forKey: "yOffset") || 
+                zOffset != UserDefaults.standard.float(forKey: "zOffset") ||
+                xRot != UserDefaults.standard.float(forKey: "xRot") ||
+                yRot != UserDefaults.standard.float(forKey: "yRot") ||
+                zRot != UserDefaults.standard.float(forKey: "zRot") {
+                    UserDefaults.standard.set(selectedRobotName, forKey: "selectedRobotName")
+
+                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        self?.controller.loadRobot(robot: self?.customRobot ?? Robot.robot3044)    
+                    }
+                }
+            } else {
+                if selectedRobotName != UserDefaults.standard.string(forKey: "selectedRobotName") {
+                    UserDefaults.standard.set(selectedRobotName, forKey: "selectedRobotName")
+                    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                        self?.controller.loadRobot(name: selectedRobotName)
+                    }
                 }
             }
         }
+
+        UserDefaults.standard.set(xOffset, forKey: "xOffset")
+        UserDefaults.standard.set(yOffset, forKey: "yOffset")
+        UserDefaults.standard.set(zOffset, forKey: "zOffset")
+        UserDefaults.standard.set(xRot, forKey: "xRot")
+        UserDefaults.standard.set(yRot, forKey: "yRot")
+        UserDefaults.standard.set(zRot, forKey: "zRot")
+
+        UserDefaults.standard.synchronize()
 
         NTHandler.connect()
 

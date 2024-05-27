@@ -13,6 +13,9 @@ class NetworkTablesHandler {
     var port: String?
     var robotKey: String?
 
+    var lastPosition: SCNVector3 = SCNVector3(0, 0, 0)
+    var lastRotation: Float = 0
+
     init(robotNode: SCNNode, statusLabel: UILabel) {
         self.robotNode = robotNode
         self.statusLabel = statusLabel
@@ -25,9 +28,10 @@ class NetworkTablesHandler {
             if topic.name == (self.robotKey ?? "") {
                 // [x, y, rot (degrees)]
                 let newPos = topic.getDoubleArray();
-                // The data is in meters relative to the field center (in the field model scale) so we need to scale it to the ARKit scale
                 self.robotNode.position = SCNVector3(-newPos![0] + self.fieldCenterX, 0, newPos![1] - self.fieldCenterY)
+                self.lastPosition = self.robotNode.position
                 self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
+                self.lastRotation = self.robotNode.eulerAngles.y
             }
         }, onConnect: {
             NSLog("Connected to NetworkTables")
@@ -58,6 +62,12 @@ class NetworkTablesHandler {
             robotKey = "/SmartDashboard/Field/Robot"
             UserDefaults.standard.set(robotKey, forKey: "robotKey")
         }
+    }
+
+    func setNewRobot(robot: SCNNode) {
+        robotNode = robot
+        robotNode.position = lastPosition
+        robotNode.eulerAngles.y = lastRotation
     }
 
     func connect() {

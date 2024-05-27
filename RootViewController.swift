@@ -62,8 +62,41 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         NSLog("Field loaded successfully")
         
         // Load the robot, it should be relative to the field. 0,0 should be the center of the field
-        let robotName = UserDefaults.standard.string(forKey: "selectedRobotName") ?? "R0xstar (3044)"
-        loadRobot(name: robotName)
+        if !UserDefaults.standard.bool(forKey: "customRobotSelected") {
+            let robotName = UserDefaults.standard.string(forKey: "selectedRobotName") ?? "R0xstar (3044)"
+            loadRobot(name: robotName)
+        } else {
+            let robotName = UserDefaults.standard.string(forKey: "customRobotName") ?? "Custom Robot"
+            if let bookmarkData = UserDefaults.standard.data(forKey: "customRobotBookmarkData") {
+                var isStale = false
+                do {
+                    let bookmarkURL = try URL(resolvingBookmarkData: bookmarkData, options: [], relativeTo: nil, bookmarkDataIsStale: &isStale)
+                    if isStale {
+                        // The bookmark data is stale, so you need to create a new bookmark
+                        let newBookmarkData = try bookmarkURL.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+                        UserDefaults.standard.set(newBookmarkData, forKey: "customRobotBookmarkData")
+                    }
+                    
+                    let robotOffset = SCNVector3(
+                        UserDefaults.standard.float(forKey: "xOffset"),
+                        UserDefaults.standard.float(forKey: "yOffset"),
+                        UserDefaults.standard.float(forKey: "zOffset")
+                    )
+                    let rotationOffset = SCNVector3(
+                        UserDefaults.standard.float(forKey: "xRot"),
+                        UserDefaults.standard.float(forKey: "yRot"),
+                        UserDefaults.standard.float(forKey: "zRot")
+                    )
+                    let robot = Robot(url: bookmarkURL, name: robotName, positionOffset: robotOffset, rotations: rotationOffset)
+                    loadRobot(robot: robot)                    
+                } catch {
+                    print("Failed to resolve bookmark: \(error)")
+                    loadRobot(name: "R0xstar (3044)")
+                }
+            } else {
+                loadRobot(name: "R0xstar (3044)")
+            }
+        }
         
         addGestureRecognizers()
         statusLabel = PaddedLabel()
@@ -118,17 +151,20 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     }
 
     func loadRobot(name: String){
-        // if robotNode already exists, remove it
-        if robotNode != nil {
-            robotNode.removeFromParentNode()
-            
-        }
-        guard let robot = sceneView.loadRobot(Robot.getByName(name)) else {
+        let robot = Robot.getByName(name)
+        loadRobot(robot: robot)
+    }
+
+    func loadRobot(robot: Robot){
+        guard let robot = sceneView.loadRobot(robot) else {
             NSLog("Failed to load robot model")
             return
         }
         NSLog("Robot loaded successfully")
         robotNode = robot
+        if NTHandler != nil {
+            NTHandler.setNewRobot(robot: robot)
+        }
     }
 
     // Done to allow rotation and pinch gestures to work simultaneously
