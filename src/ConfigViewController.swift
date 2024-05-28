@@ -38,10 +38,10 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
 
         sections = [
             [
-                Row(type: .textField(placeholder: "Team Number", defaultValue: UserDefaults.standard.string(forKey: "teamNumber"), keyboardType: .numberPad)),
-                Row(type: .textField(placeholder: "IP Address", defaultValue: UserDefaults.standard.string(forKey: "ip"), keyboardType: .numbersAndPunctuation)),
+                Row(type: .textField(placeholder: "Team Number (for roboRIO)", defaultValue: UserDefaults.standard.string(forKey: "teamNumber"), keyboardType: .numberPad)),
+                Row(type: .textField(placeholder: "IP (for simulator)", defaultValue: UserDefaults.standard.string(forKey: "ip"), keyboardType: .numbersAndPunctuation)),
                 Row(type: .textField(placeholder: "Port", defaultValue: UserDefaults.standard.string(forKey: "port"), keyboardType: .numberPad)),
-                Row(type: .toggleSwitch(label: "Use Manual Address", defaultValue: UserDefaults.standard.bool(forKey: "manualAddress")))
+                Row(type: .toggleSwitch(label: "Manual Address", defaultValue: UserDefaults.standard.bool(forKey: "manualAddress")))
             ],
             [
                 Row(type: .button(label: "Set to full size", action: {
@@ -447,11 +447,13 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         switch section {
         case 0:
-            return "Manual address is used to connect to the simulator."
+            return "Use manual address for the simulator."
         case 1:
             return "Tap on a flat, horizontal surface to place the field."
         case 2:
             return "When importing a custom robot for the first time, you may need to restart the app for it to appear."
+        case 3:
+            return "You can only have one custom robot imported at a time, subsequent imports will overwrite. Offsets can be changed after import."
         default:
             return nil
         }
