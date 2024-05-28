@@ -184,7 +184,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.robotCellTapped(_:)))
             cell.addGestureRecognizer(tapGesture)
         case .importRobot:
-            cell.textLabel?.text = "Import Robot"
+            cell.textLabel?.text = "Import Robot (.usdz)"
             cell.textLabel?.textColor = view.tintColor
             cell.selectionStyle = .default
             cell.isUserInteractionEnabled = true
@@ -453,7 +453,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         case 2:
             return "When importing a custom robot for the first time, you may need to restart the app for it to appear."
         case 3:
-            return "You can only have one custom robot imported at a time, subsequent imports will overwrite. Offsets can be changed after import."
+            return "You can convert your model to .usdz online. Only one robot can be imported at a time; subsequent imports will overwrite. Offsets can be changed after import."
         default:
             return nil
         }
