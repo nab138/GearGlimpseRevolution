@@ -8,7 +8,7 @@ Powered by [theos](https://theos.dev)
 
 # Installation
 
-To install on an iDevice, download the ipa from the latest [release](https://github.com/nab138/GearGlimpseRevolution/releases/latest) or[actions run](https://github.com/nab138/GearGlimpseRevolution/actions) for the bleeding edge.
+To install on an iDevice, download the ipa from the latest [release](https://github.com/nab138/GearGlimpseRevolution/releases/latest) or [actions run](https://github.com/nab138/GearGlimpseRevolution/actions) for the bleeding edge.
 
 You can use sideloaders such as [sidestore](https://sidestore.io), [sideloader](https://github.com/Dadoum/Sideloader), [altstore](https://altstore.io), etc to install the ipa.
 
