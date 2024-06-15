@@ -24,8 +24,9 @@ To import a custom robot, convert it to a .usdz file, then you can import it fro
 
 1. Follow the installation guide from [theos](https://theos.dev)
 2. Install the [swift toolchain](https://github.com/kabiroberai/swift-toolchain-linux/) (note that theos's default swift toolchain will not work for this project).
-3. Clone the repo, `git clone https://github.com/nab138/GearGlimpseRevolution && cd GearGlimpseRevolution`
-4. Run `make package` to build an ipa
+3. **IMPORTANT**: Follow the instructions here or theos will not build the app correctly. `https://github.com/theos/theos/issues/752#issuecomment-1694531205`
+4. Clone the repo, `git clone https://github.com/nab138/GearGlimpseRevolution && cd GearGlimpseRevolution`
+5. Run `make package` to build an ipa
 
 If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/bin, you can run deploy.sh to automatically build and install to your ios device.
 
@@ -40,4 +41,4 @@ If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/
 - [ ] Field Switcher
 - [ ] Field Element Placement
 - [ ] Mechanism Rendering (maybe)
-- [ ] Alignment with real field via AprilTags (probably not)
+- [ ] Alignment with real field via AprilTags (in progress)

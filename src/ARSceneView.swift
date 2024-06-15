@@ -36,6 +36,10 @@ class ARSceneView: ARSCNView {
 
     var referenceNode: SCNNode?
 
+    let detector = VispDetector()
+    var detectedImageView: UIImageView?
+
+
     func loadModelFromResources(_ name: String) -> SCNNode? {
         let url = Bundle.main.url(forResource: name, withExtension: "usdz")!
         return loadModelFromURL(url)
@@ -98,4 +102,46 @@ class ARSceneView: ARSCNView {
             curContainerDummyNode?.scale = fieldNode.scale
         }
     }
+
+func detectAprilTagsInScene() {
+    // 1. Capture the current frame
+    guard let currentFrame = session.currentFrame else {
+        NSLog("Failed to get the current ARFrame")
+        return
+    }
+    
+    // 2. Convert the captured frame to a UIImage
+    let pixelBuffer = currentFrame.capturedImage
+    let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+    let context = CIContext(options: nil)
+    guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
+        NSLog("Failed to create a CGImage from the captured frame")
+        return
+    }
+    let uiImage = UIImage(cgImage: cgImage)
+    
+    // 3. Use the VispDetector to detect AprilTags and overlay the detections
+    NSLog("Camera px: \(currentFrame.camera.intrinsics.columns.0.x), py: \(currentFrame.camera.intrinsics.columns.1.y)")
+    let detectedImage = detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y))
+    if (detectedImage == nil) {
+        NSLog("Failed to detect AprilTags in the current frame")
+        return
+    }
+
+    // Display the detected image between the camera feed and the AR content
+    if (detectedImageView == nil) {
+        detectedImageView = UIImageView()
+        detectedImageView!.frame = bounds
+        detectedImageView!.contentMode = .scaleAspectFill
+        detectedImageView!.backgroundColor = .clear // Ensure the background is transparent
+        addSubview(detectedImageView!)
+    }
+    detectedImageView!.image = detectedImage
+
+    // Correct orientation
+    detectedImageView!.transform = CGAffineTransform(rotationAngle: .pi / 2).concatenating(CGAffineTransform(scaleX: -1, y: 1))
+}
+
+
+
 }

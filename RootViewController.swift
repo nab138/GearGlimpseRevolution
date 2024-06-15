@@ -15,6 +15,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     var instructionLabel: PaddedLabel!
 
     var openSettingsLabel: UILabel!
+    
+    var frameCounter = 0
 
     override func loadView() {
         super.loadView()
@@ -192,6 +194,13 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         super.viewWillTransition(to: size, with: coordinator)
 
         sceneView.frame = CGRect(origin: .zero, size: size)
+    }
+
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        if frameCounter % 3 == 0 {
+            sceneView.detectAprilTagsInScene()
+        }
+        frameCounter += 1
     }
 
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
