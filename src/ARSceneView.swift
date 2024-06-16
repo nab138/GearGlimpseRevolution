@@ -37,7 +37,7 @@ class ARSceneView: ARSCNView {
     var referenceNode: SCNNode?
 
     let detector = VispDetector()
-    var detectedImageView: UIImageView?
+    var detectedImageLayer: CALayer?
 
 
     func loadModelFromResources(_ name: String) -> SCNNode? {
