@@ -104,25 +104,27 @@ class ARSceneView: ARSCNView {
     }
 
     func detectAprilTagsInScene() {
+        guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
+            return
+        }
+
+        guard let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y)) else {
+            DispatchQueue.main.async {
+                self.detectedImageLayer?.isHidden = true
+            }
+            return
+        }
+
         DispatchQueue.main.async {
-            guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
-                return
+            if self.detectedImageLayer == nil {
+                self.detectedImageLayer = CALayer()
+                self.detectedImageLayer!.frame = self.bounds
+                self.detectedImageLayer!.contentsGravity = .resizeAspectFill
+                self.detectedImageLayer!.backgroundColor = UIColor.clear.cgColor
+                self.layer.addSublayer(self.detectedImageLayer!)
             }
-
-            guard let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y)) else {
-                self.detectedImageView?.isHidden = true
-                return
-            }
-
-            if self.detectedImageView == nil {
-                self.detectedImageView = UIImageView()
-                self.detectedImageView!.frame = self.bounds
-                self.detectedImageView!.contentMode = .scaleAspectFill
-                self.detectedImageView!.backgroundColor = .clear
-                self.addSubview(self.detectedImageView!)
-            }
-            self.detectedImageView!.image = detectedImage
-            self.detectedImageView!.isHidden = false
+            self.detectedImageLayer!.contents = detectedImage.cgImage
+            self.detectedImageLayer!.isHidden = false
         }
     }
 
