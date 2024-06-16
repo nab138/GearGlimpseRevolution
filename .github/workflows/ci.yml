@@ -38,7 +38,7 @@ jobs:
           key: ${{ runner.os }}-opencv2-2022-04-07
 
       - name: Download Visp3 & Opencv Framework
-        if: steps.cache-visp3.outputs.cache-hit != 'true'
+        if: steps.cache-visp3.outputs.cache-hit != 'true' || steps.cache-opencv2.outputs.cache-hit != 'true'
         run: |
           mkdir -p ${{ github.workspace }}/theos/lib
           curl -L https://visp-doc.inria.fr/download/snapshot/ios/visp3.framework-2022-04-07.zip -o ${{ github.workspace }}/theos/lib/visp3.framework-2022-04-07.zip

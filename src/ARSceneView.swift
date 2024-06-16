@@ -104,31 +104,29 @@ class ARSceneView: ARSCNView {
     }
 
     func detectAprilTagsInScene() {
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-            let uiImage = self.imageFrom();
-            let currentFrame = self.session.currentFrame!
-            
-            let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y))
-            if (detectedImage == nil) {
-                NSLog("Failed to detect AprilTags in the current frame")
+        DispatchQueue.main.async {
+            guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
                 return
             }
 
-            DispatchQueue.main.async {
-                if (self.detectedImageView == nil) {
-                    self.detectedImageView = UIImageView()
-                    self.detectedImageView!.frame = self.bounds
-                    self.detectedImageView!.contentMode = .scaleAspectFill
-                    self.detectedImageView!.backgroundColor = .clear
-                    self.addSubview(self.detectedImageView!)
-                }
-                self.detectedImageView!.image = detectedImage
+            guard let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y)) else {
+                self.detectedImageView?.isHidden = true
+                return
             }
+
+            if self.detectedImageView == nil {
+                self.detectedImageView = UIImageView()
+                self.detectedImageView!.frame = self.bounds
+                self.detectedImageView!.contentMode = .scaleAspectFill
+                self.detectedImageView!.backgroundColor = .clear
+                self.addSubview(self.detectedImageView!)
+            }
+            self.detectedImageView!.image = detectedImage
+            self.detectedImageView!.isHidden = false
         }
     }
 
-    func imageFrom() -> UIImage {
+    func imageFrom() -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(bounds.size, isOpaque, 0.0)
         drawHierarchy(in: bounds, afterScreenUpdates: false)
         let image = UIGraphicsGetImageFromCurrentImageContext()

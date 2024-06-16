@@ -41,6 +41,10 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
 
     // draw frames by each tag.
     int tagNums = (int) detector.getNbObjects();
+    // if tagNums is 0, return nil.
+    if (tagNums == 0) {
+        return nil;
+    }
     for (int i = 0; i < tagNums; i++) {
 
         // parameters
