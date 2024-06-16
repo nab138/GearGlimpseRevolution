@@ -103,45 +103,36 @@ class ARSceneView: ARSCNView {
         }
     }
 
-func detectAprilTagsInScene() {
-    // 1. Capture the current frame
-    guard let currentFrame = session.currentFrame else {
-        NSLog("Failed to get the current ARFrame")
-        return
+    func detectAprilTagsInScene() {
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            guard let self = self else { return }
+            let uiImage = self.imageFrom();
+            let currentFrame = self.session.currentFrame!
+            
+            let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y))
+            if (detectedImage == nil) {
+                NSLog("Failed to detect AprilTags in the current frame")
+                return
+            }
+
+            DispatchQueue.main.async {
+                if (self.detectedImageView == nil) {
+                    self.detectedImageView = UIImageView()
+                    self.detectedImageView!.frame = self.bounds
+                    self.detectedImageView!.contentMode = .scaleAspectFill
+                    self.detectedImageView!.backgroundColor = .clear
+                    self.addSubview(self.detectedImageView!)
+                }
+                self.detectedImageView!.image = detectedImage
+            }
+        }
     }
-    
-    // 2. Convert the captured frame to a UIImage
-    let pixelBuffer = currentFrame.capturedImage
-    let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-    let context = CIContext(options: nil)
-    guard let cgImage = context.createCGImage(ciImage, from: ciImage.extent) else {
-        NSLog("Failed to create a CGImage from the captured frame")
-        return
+
+    func imageFrom() -> UIImage {
+        UIGraphicsBeginImageContextWithOptions(bounds.size, isOpaque, 0.0)
+        drawHierarchy(in: bounds, afterScreenUpdates: false)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return UIImage(cgImage: (image?.cgImage)!)
     }
-    let uiImage = UIImage(cgImage: cgImage)
-    
-    // 3. Use the VispDetector to detect AprilTags and overlay the detections
-    NSLog("Camera px: \(currentFrame.camera.intrinsics.columns.0.x), py: \(currentFrame.camera.intrinsics.columns.1.y)")
-    let detectedImage = detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y))
-    if (detectedImage == nil) {
-        NSLog("Failed to detect AprilTags in the current frame")
-        return
-    }
-
-    // Display the detected image between the camera feed and the AR content
-    if (detectedImageView == nil) {
-        detectedImageView = UIImageView()
-        detectedImageView!.frame = bounds
-        detectedImageView!.contentMode = .scaleAspectFill
-        detectedImageView!.backgroundColor = .clear // Ensure the background is transparent
-        addSubview(detectedImageView!)
-    }
-    detectedImageView!.image = detectedImage
-
-    // Correct orientation
-    detectedImageView!.transform = CGAffineTransform(rotationAngle: .pi / 2).concatenating(CGAffineTransform(scaleX: -1, y: 1))
-}
-
-
-
 }
