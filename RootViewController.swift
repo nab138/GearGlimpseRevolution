@@ -196,11 +196,16 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         sceneView.frame = CGRect(origin: .zero, size: size)
     }
 
+    let serialQueue = DispatchQueue(label: "me.nabdev.gearglimpserev.serialQueue")
+    var isProcessing = false
+
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        if frameCounter % 3 == 0 {
-            sceneView.detectAprilTagsInScene()
+        serialQueue.async {
+            guard !self.isProcessing else { return }
+            self.isProcessing = true
+            self.sceneView.detectAprilTagsInScene()
+            self.isProcessing = false
         }
-        frameCounter += 1
     }
 
     func session(_ session: ARSession, cameraDidChangeTrackingState camera: ARCamera) {
