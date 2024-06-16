@@ -30,6 +30,13 @@ jobs:
           path: ${{ github.workspace }}/theos/lib/visp3.framework
           key: ${{ runner.os }}-visp3-2022-04-07
 
+      - name: Cache opencv2 Framework
+        uses: actions/cache@v2
+        id: cache-opencv2
+        with:
+          path: ${{ github.workspace }}/theos/lib/opencv2.framework
+          key: ${{ runner.os }}-opencv2-2022-04-07
+
       - name: Download Visp3 Framework
         if: steps.cache-visp3.outputs.cache-hit != 'true'
         run: |
