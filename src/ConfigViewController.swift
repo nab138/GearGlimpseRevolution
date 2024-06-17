@@ -48,7 +48,8 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
                     self.fieldNode.scale = SCNVector3(1, 1, 1)
                 })),
                 Row(type: .toggleSwitch(label: "Visible", defaultValue: UserDefaults.standard.bool(forKey: "fieldVisible"))),
-                Row(type: .toggleSwitch(label: "Transparent", defaultValue: UserDefaults.standard.bool(forKey: "fieldTransparent")))
+                Row(type: .toggleSwitch(label: "Transparent", defaultValue: UserDefaults.standard.bool(forKey: "fieldTransparent"))),
+                Row(type: .toggleSwitch(label: "Detect AprilTags", defaultValue: UserDefaults.standard.bool(forKey: "detectAprilTags")))
             ],
             [
                 Row(type: .textField(placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey"))),
@@ -347,7 +348,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
 
         let fieldVisibleSwitch = cellViews[IndexPath(row: 1, section: 1)] as? UISwitch
         let fieldTransparentSwitch = cellViews[IndexPath(row: 2, section: 1)] as? UISwitch
+        let detectAprilTagsSwitch = cellViews[IndexPath(row: 3, section: 1)] as? UISwitch
 
+        UserDefaults.standard.set(detectAprilTagsSwitch?.isOn, forKey: "detectAprilTags")
+
+        controller.shouldDetectAprilTags = detectAprilTagsSwitch?.isOn ?? false
         UserDefaults.standard.set(fieldVisibleSwitch?.isOn, forKey: "fieldVisible")
         UserDefaults.standard.set(fieldTransparentSwitch?.isOn, forKey: "fieldTransparent")
 
@@ -392,6 +397,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
                 customRobot?.rotations = rotations
             }
         }
+
 
 
         UserDefaults.standard.set(teamNumberTextField?.text, forKey: "teamNumber")

@@ -16,6 +16,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
 
     var openSettingsLabel: UILabel!
 
+    var shouldDetectAprilTags = true
+
     override func loadView() {
         super.loadView()
 
@@ -69,6 +71,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         sceneView.fieldNode.isHidden = !(UserDefaults.standard.bool(forKey: "fieldVisible"))
         sceneView.fieldNode.opacity = UserDefaults.standard.bool(forKey: "fieldTransparent") ? 0.5 : 1.0
 
+        shouldDetectAprilTags = UserDefaults.standard.bool(forKey: "detectAprilTags")
         
         // Load the robot, it should be relative to the field. 0,0 should be the center of the field
         if !UserDefaults.standard.bool(forKey: "customRobotSelected") {
@@ -200,7 +203,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     var isDetectingAprilTags = false
 
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        guard lastUpdateTime == nil || time - lastUpdateTime! >= 0.1 else { return }
+        guard shouldDetectAprilTags && (lastUpdateTime == nil || time - lastUpdateTime! >= 0.1) else { return }
         lastUpdateTime = time
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
