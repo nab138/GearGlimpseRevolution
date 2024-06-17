@@ -105,9 +105,9 @@ class ARSceneView: ARSCNView {
         }
     }
 
-    func detectAprilTagsInScene(completion: @escaping () -> Void) {
+    func detectAprilTagsInScene(completion: @escaping (Bool) -> Void) {
         guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
-            completion()
+            completion(false)
             return
         }
 
@@ -117,7 +117,7 @@ class ARSceneView: ARSCNView {
                     self.detectedImageLayer?.isHidden = true
                 }
             }
-            completion()
+            completion(false)
             return
         }
 
@@ -131,7 +131,7 @@ class ARSceneView: ARSCNView {
             }
             self.detectedImageLayer!.contents = detectedImage.cgImage
             self.detectedImageLayer!.isHidden = false
-            completion()
+            completion(true)
         }
     }
 

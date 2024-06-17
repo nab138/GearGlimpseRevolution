@@ -200,17 +200,32 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
 
     var lastUpdateTime: TimeInterval?
 
+    let detectionPeriod = 0.05;
+    let noDetectionPeriod = 0.5;
+
+    var failedOnce = false;
+
+    var period = noDetectionPeriod;
     var isDetectingAprilTags = false
+    
 
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        guard shouldDetectAprilTags && (lastUpdateTime == nil || time - lastUpdateTime! >= 0.1) else { return }
+        guard shouldDetectAprilTags && (lastUpdateTime == nil || time - lastUpdateTime! >= period) else { return }
         lastUpdateTime = time
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self, !self.isDetectingAprilTags else { return }
             self.isDetectingAprilTags = true
-            self.sceneView.detectAprilTagsInScene() {
-                self.isDetectingAprilTags = false
+            self.sceneView.detectAprilTagsInScene() { success in
+                self.isDetectingAprilTags = false;
+                if success {
+                    self.period = self.detectionPeriod
+                    self.failedOnce = false
+                } else if self.failedOnce {
+                    self.period = self.noDetectionPeriod
+                } else {
+                    self.failedOnce = true
+                }
             }
         }
     }
