@@ -24,14 +24,14 @@ jobs:
           cache-dir-sdks: ${{ github.workspace }}/theos/sdks
 
       - name: Cache Visp3 Framework
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cache-visp3
         with:
           path: ${{ github.workspace }}/theos/lib/visp3.framework
           key: ${{ runner.os }}-visp3-2022-04-07
 
       - name: Cache opencv2 Framework
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         id: cache-opencv2
         with:
           path: ${{ github.workspace }}/theos/lib/opencv2.framework

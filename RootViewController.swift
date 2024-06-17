@@ -205,7 +205,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
 
     var failedOnce = false;
 
-    var period = noDetectionPeriod;
+    var period = 0.5;
     var isDetectingAprilTags = false
     
 
