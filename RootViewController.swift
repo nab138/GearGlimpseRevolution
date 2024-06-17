@@ -3,7 +3,7 @@ import ARKit
 import SceneKit
 import SceneKit.ModelIO
 
-class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessionDelegate {
+class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessionDelegate, ARSCNViewDelegate {
     var sceneView: ARSceneView!
     var robotNode: SCNNode!
 
@@ -15,8 +15,6 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     var instructionLabel: PaddedLabel!
 
     var openSettingsLabel: UILabel!
-    
-    var frameCounter = 0
 
     override func loadView() {
         super.loadView()
@@ -50,6 +48,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         super.viewDidLoad()
 
         sceneView.session.delegate = self
+        sceneView.delegate = self
 
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = .horizontal
@@ -196,15 +195,15 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         sceneView.frame = CGRect(origin: .zero, size: size)
     }
 
-    let serialQueue = DispatchQueue(label: "me.nabdev.gearglimpserev.serialQueue")
-    var isProcessing = false
+    var lastUpdateTime: TimeInterval?
 
-    func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        serialQueue.async {
-            guard !self.isProcessing else { return }
-            self.isProcessing = true
-            self.sceneView.detectAprilTagsInScene()
-            self.isProcessing = false
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        NSLog("renderer called")
+        guard lastUpdateTime == nil || time - lastUpdateTime! >= 0.5 else { return }
+        lastUpdateTime = time
+
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            self?.sceneView.detectAprilTagsInScene()
         }
     }
 

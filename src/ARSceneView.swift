@@ -104,6 +104,7 @@ class ARSceneView: ARSCNView {
     }
 
     func detectAprilTagsInScene() {
+        NSLog("Detecting April tags in scene")
         guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
             return
         }
