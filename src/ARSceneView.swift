@@ -39,6 +39,8 @@ class ARSceneView: ARSCNView {
     let detector = VispDetector()
     var detectedImageLayer: CALayer?
 
+    var imageView: UIImageView?
+
 
     func loadModelFromResources(_ name: String) -> SCNNode? {
         let url = Bundle.main.url(forResource: name, withExtension: "usdz")!
@@ -103,15 +105,16 @@ class ARSceneView: ARSCNView {
         }
     }
 
-    func detectAprilTagsInScene() {
-        NSLog("Detecting April tags in scene")
+    func detectAprilTagsInScene(completion: @escaping () -> Void) {
         guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
+            completion()
             return
         }
 
         guard let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y)) else {
             DispatchQueue.main.async {
                 self.detectedImageLayer?.isHidden = true
+                completion()
             }
             return
         }
@@ -126,14 +129,30 @@ class ARSceneView: ARSCNView {
             }
             self.detectedImageLayer!.contents = detectedImage.cgImage
             self.detectedImageLayer!.isHidden = false
+            completion()
         }
     }
 
     func imageFrom() -> UIImage? {
-        UIGraphicsBeginImageContextWithOptions(bounds.size, isOpaque, 0.0)
-        drawHierarchy(in: bounds, afterScreenUpdates: false)
-        let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return UIImage(cgImage: (image?.cgImage)!)
+        guard let currentFrame = self.session.currentFrame else {
+            return nil
+        }
+
+        let pixelBuffer = currentFrame.capturedImage
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+
+        var transform = CGAffineTransform(rotationAngle: CGFloat.pi / 2)
+        transform = transform.scaledBy(x: -1, y: -1)
+
+        let transformedCIImage = ciImage.transformed(by: transform)
+
+        let context = CIContext(options: nil)
+        guard let cgImage = context.createCGImage(transformedCIImage, from: transformedCIImage.extent) else {
+            return nil
+        }
+
+        let image = UIImage(cgImage: cgImage)
+
+        return image
     }
 }
