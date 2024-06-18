@@ -22,21 +22,28 @@ To import a custom robot, convert it to a .usdz file, then you can import it fro
 
 # Development
 
-1. Follow the installation guide from [theos](https://theos.dev)
-2. Install the [swift toolchain](https://github.com/kabiroberai/swift-toolchain-linux/) (note that theos's default swift toolchain will not work for this project).
-3. **IMPORTANT**: Follow the instructions [here](https://github.com/theos/theos/issues/752#issuecomment-1694531205) or theos will not build the app correctly.
-4. Clone the repo, `git clone https://github.com/nab138/GearGlimpseRevolution && cd GearGlimpseRevolution`
-5. Run `make package` to build an ipa
+1. Follow the installation guide from [theos](https://theos.dev) (doesn't matter what toolchain you pick, you will be replacing it anyways)
+2. Download the correct [swift toolchain](https://github.com/kabiroberai/swift-toolchain-linux/releases/latest) (note that theos's default swift toolchain will not work for this project). Yes, that is the correct link on windows as well. Extract it to $THEOS/toolchain (make sure $THEOS/toolchain is empty before extracting, delete any files in there if necessary)
+3. Follow [these instructions](https://github.com/theos/theos/issues/752#issuecomment-1694531205) or theos will not build the app correctly.
+4. Download the [required frameworks](https://visp-doc.inria.fr/download/snapshot/ios/visp3.framework-2022-04-07.zip) and extract them into $THEOS/lib
+5. Clone the repo, `git clone https://github.com/nab138/GearGlimpseRevolution && cd GearGlimpseRevolution`
+6. Download the [required assets](https://github.com/nab138/GearGlimpseRevolution/releases/tag/assets-v2) and place them in the "Resources" folder
+7. Run `make package` to build an ipa
 
 If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/bin, you can run deploy.sh to automatically build and install to your ios device.
 
-# Roadmap
+## Current Features
 
 - [x] Basic field placement
 - [x] Networktables support
 - [x] Robot switching
 - [x] Custom robot import
 - [x] Transparent/Invisible Field
+
+## Planned Features (in no particular order)
+
+Features marked with a checkmark have been completed but not included in the latest release.
+
 - [x] AprilTag Detector
 - [ ] Alignment with real field via AprilTags
 - [ ] Trajectory Rendering
