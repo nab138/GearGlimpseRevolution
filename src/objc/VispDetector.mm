@@ -43,6 +43,7 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
     int tagNums = (int) detector.getNbObjects();
     // if tagNums is 0, return nil.
     if (tagNums == 0) {
+        UIGraphicsEndImageContext();
         return nil;
     }
     for (int i = 0; i < tagNums; i++) {

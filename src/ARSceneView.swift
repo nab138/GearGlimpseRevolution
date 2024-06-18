@@ -106,32 +106,34 @@ class ARSceneView: ARSCNView {
     }
 
     func detectAprilTagsInScene(completion: @escaping (Bool) -> Void) {
-        guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
-            completion(false)
-            return
-        }
+        autoreleasepool {
+            guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
+                completion(false)
+                return
+            }
 
-        guard let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y)) else {
-            if(!(self.detectedImageLayer?.isHidden ?? false)) {
-                DispatchQueue.main.async {
-                    self.detectedImageLayer?.isHidden = true
+            guard let detectedImage = self.detector.detectAprilTag(uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x), py: Float(currentFrame.camera.intrinsics.columns.1.y)) else {
+                if(!(self.detectedImageLayer?.isHidden ?? false)) {
+                    DispatchQueue.main.async {
+                        self.detectedImageLayer?.isHidden = true
+                    }
                 }
+                completion(false)
+                return
             }
-            completion(false)
-            return
-        }
 
-        DispatchQueue.main.async {
-            if self.detectedImageLayer == nil {
-                self.detectedImageLayer = CALayer()
-                self.detectedImageLayer!.frame = self.bounds
-                self.detectedImageLayer!.contentsGravity = .resizeAspectFill
-                self.detectedImageLayer!.backgroundColor = UIColor.clear.cgColor
-                self.layer.addSublayer(self.detectedImageLayer!)
+            DispatchQueue.main.async {
+                if self.detectedImageLayer == nil {
+                    self.detectedImageLayer = CALayer()
+                    self.detectedImageLayer!.frame = self.bounds
+                    self.detectedImageLayer!.contentsGravity = .resizeAspectFill
+                    self.detectedImageLayer!.backgroundColor = UIColor.clear.cgColor
+                    self.layer.addSublayer(self.detectedImageLayer!)
+                }
+                self.detectedImageLayer!.contents = detectedImage.cgImage
+                self.detectedImageLayer!.isHidden = false
+                completion(true)
             }
-            self.detectedImageLayer!.contents = detectedImage.cgImage
-            self.detectedImageLayer!.isHidden = false
-            completion(true)
         }
     }
 

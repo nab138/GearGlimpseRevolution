@@ -214,22 +214,25 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         lastUpdateTime = time
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            guard let self = self else { return }
-            DispatchQueue.main.async {
-                guard !self.isDetectingAprilTags else { return }
-                self.isDetectingAprilTags = true
-            }
-            
-            self.sceneView.detectAprilTagsInScene() { success in
+            autoreleasepool {
+                guard let self = self else { return }
                 DispatchQueue.main.async {
-                    self.isDetectingAprilTags = false;
-                    if success {
-                        self.period = self.detectionPeriod
-                        self.failedOnce = false
-                    } else if self.failedOnce {
-                        self.period = self.noDetectionPeriod
-                    } else {
-                        self.failedOnce = true
+                    guard !self.isDetectingAprilTags else { return }
+                    self.isDetectingAprilTags = true
+                }
+                
+                self.sceneView.detectAprilTagsInScene() { [weak self] success in
+                    guard let self = self else { return }
+                    DispatchQueue.main.async {
+                        self.isDetectingAprilTags = false;
+                        if success {
+                            self.period = self.detectionPeriod
+                            self.failedOnce = false
+                        } else if self.failedOnce {
+                            self.period = self.noDetectionPeriod
+                        } else {
+                            self.failedOnce = true
+                        }
                     }
                 }
             }
