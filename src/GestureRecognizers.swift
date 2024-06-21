@@ -47,10 +47,13 @@ extension RootViewController {
     sceneView.fieldNode.position = position
     sceneView.updateRobotNodeTransform()
 
+    labelNode.position = SCNVector3(position.x, position.y + 0.5, position.z)
+
     if !hasPlacedField {
       sceneView.scene.rootNode.addChildNode(sceneView.fieldNode)
       hasPlacedField = true
       sceneView.curContainerDummyNode?.isHidden = false
+      sceneView.scene.rootNode.addChildNode(labelNode)
     }
   }
 

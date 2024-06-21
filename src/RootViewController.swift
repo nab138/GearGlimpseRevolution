@@ -9,6 +9,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
   // AR elements
   var sceneView: ARSceneView!
   var robotNode: SCNNode!
+  var labelNode: SCNNode!
   var hasPlacedField = false
 
   // NetworkTables
@@ -34,6 +35,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     sceneView = ARSceneView(frame: UIScreen.main.bounds)
     sceneView.autoenablesDefaultLighting = true
     self.view.addSubview(sceneView)
+    sceneView.session.delegate = self
+    sceneView.delegate = self
 
     instructionLabel = PaddedLabel()
     instructionLabel.font = UIFont.systemFont(ofSize: 18)
@@ -104,9 +107,6 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    sceneView.session.delegate = self
-    sceneView.delegate = self
-
     let configuration = ARWorldTrackingConfiguration()
     configuration.planeDetection = .horizontal
     sceneView.session.run(configuration)
@@ -118,6 +118,43 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     }
     sceneView.fieldNode = field
     sceneView.fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
+
+    // Create a UILabel
+    let label = PaddedLabel()
+    label.text = "GearGlimpseRevolution"
+    label.textColor = UIColor.white
+    label.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+    label.layer.cornerRadius = 10
+    label.clipsToBounds = true
+    label.rightInset = 10
+    label.leftInset = 10
+    label.topInset = 5
+    label.bottomInset = 5
+
+    let textSize = label.text!.size(withAttributes: [NSAttributedString.Key.font: label.font!])
+    let textWidth = textSize.width + label.leftInset + label.rightInset
+
+    // Set the label's frame
+    label.frame = CGRect(x: 0, y: 0, width: textWidth, height: label.frame.height)
+
+    // Convert the UILabel to UIImage
+    UIGraphicsBeginImageContextWithOptions(label.bounds.size, false, 0.0)
+    label.layer.render(in: UIGraphicsGetCurrentContext()!)
+    let image = UIGraphicsGetImageFromCurrentImageContext()
+    UIGraphicsEndImageContext()
+
+    let aspectRatio = label.bounds.width / label.bounds.height
+    let plane = SCNPlane(width: 0.25, height: 0.25 / aspectRatio)
+    plane.firstMaterial?.diffuse.contents = image
+    plane.firstMaterial?.isDoubleSided = true
+
+    // Create a SCNNode with the SCNPlane
+    labelNode = SCNNode(geometry: plane)
+
+    // Add a billboard constraint so the label always faces the viewer
+    let billboardConstraint = SCNBillboardConstraint()
+    billboardConstraint.freeAxes = SCNBillboardAxis.all
+    labelNode.constraints = [billboardConstraint]
 
     // Loads the saved robot and assigns a few properties from UserDefaults
     loadPrefs()
