@@ -88,4 +88,12 @@ extension RootViewController {
     }
     present(navigationController, animated: true, completion: nil)
   }
+
+  // Done to allow rotation and pinch gestures to work simultaneously
+  func gestureRecognizer(
+    _ gestureRecognizer: UIGestureRecognizer,
+    shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+  ) -> Bool {
+    return true
+  }
 }

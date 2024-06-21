@@ -55,31 +55,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
       instructionLabel.topAnchor.constraint(
         equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
     ])
-  }
 
-  override func viewDidLoad() {
-    super.viewDidLoad()
-
-    sceneView.session.delegate = self
-    sceneView.delegate = self
-
-    let configuration = ARWorldTrackingConfiguration()
-    configuration.planeDetection = .horizontal
-    sceneView.session.run(configuration)
-
-    guard let field = sceneView.loadModelFromResources("Field3d_2024") else {
-      NSLog("Failed to load field model")
-      return
-    }
-    sceneView.fieldNode = field
-    sceneView.fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
-    NSLog("Field loaded successfully")
-
-    loadPrefs()
-
-    sceneView.curContainerDummyNode?.isHidden = true
-
-    addGestureRecognizers()
     statusLabel = PaddedLabel()
 
     statusLabel.text = "NT: Disconnected"
@@ -92,21 +68,17 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     statusLabel.sizeToFit()
     statusLabel.setContentHuggingPriority(.defaultHigh, for: .vertical)
     statusLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-
     statusLabel.leftInset = 10
     statusLabel.rightInset = 10
-
     statusLabel.translatesAutoresizingMaskIntoConstraints = false
+
     sceneView.addSubview(statusLabel)
+
     NSLayoutConstraint.activate([
       statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
       statusLabel.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
       statusLabel.heightAnchor.constraint(equalToConstant: 30),
     ])
-
-    NTHandler = NetworkTablesHandler(
-      robotNode: robotNode, statusLabel: statusLabel, sceneView: sceneView)
-    NTHandler.connect()
 
     openSettingsLabel = UILabel()
     openSettingsLabel.font = UIFont.systemFont(ofSize: 18)
@@ -129,12 +101,36 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     }
   }
 
-  // Done to allow rotation and pinch gestures to work simultaneously
-  func gestureRecognizer(
-    _ gestureRecognizer: UIGestureRecognizer,
-    shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
-  ) -> Bool {
-    return true
+  override func viewDidLoad() {
+    super.viewDidLoad()
+
+    sceneView.session.delegate = self
+    sceneView.delegate = self
+
+    let configuration = ARWorldTrackingConfiguration()
+    configuration.planeDetection = .horizontal
+    sceneView.session.run(configuration)
+
+    // TODO: Field picker
+    guard let field = sceneView.loadModelFromResources("Field3d_2024") else {
+      NSLog("Failed to load field model")
+      return
+    }
+    sceneView.fieldNode = field
+    sceneView.fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
+
+    // Loads the saved robot and assigns a few properties from UserDefaults
+    loadPrefs()
+
+    sceneView.curContainerDummyNode?.isHidden = true
+
+    // Handlers for taps, pinches, rotations, and long presses to manipulate the scene
+    addGestureRecognizers()
+
+    NTHandler = NetworkTablesHandler(
+      robotNode: robotNode, statusLabel: statusLabel, sceneView: sceneView)
+    // Attempts a connection with the saved connection info
+    NTHandler.connect()
   }
 
   override func viewWillDisappear(_ animated: Bool) {
