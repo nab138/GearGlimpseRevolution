@@ -266,7 +266,6 @@ Unsubscribe from a NetworkTables topic
       topic.latestTimestamp = timestamp
       onNewTopicData?(topic, timestamp, data)
       if let callback = subscriptionCallbacks[topic.name] {
-        NSLog("Found callback for topic \(topic.name)")
         callback(topic, timestamp, data)
       }
     } else {

@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Deploy to iphone",
+      "label": "Deploy to iPhone",
       "type": "shell",
       "command": "./deploy.sh",
       "problemMatcher": ["$swiftc"],

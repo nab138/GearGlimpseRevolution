@@ -10,10 +10,12 @@ class NetworkTablesHandler {
   var robotNode: SCNNode!
   var statusLabel: UILabel!
   var robotSubID: Int?
+  var trajectorySubID: Int?
 
   var ip: String?
   var port: String?
   var robotKey: String?
+  var trajectoryKey: String?
 
   var lastPosition: SCNVector3 = SCNVector3(0, 0, 0)
   var lastRotation: Float = 0
@@ -30,9 +32,7 @@ class NetworkTablesHandler {
       onTopicUnannounce: { topic in
         NSLog("Unannounced topic: \(topic.name)")
       },
-      onNewTopicData: { topic, timestamp, data in
-        NSLog("New data for topic \(topic.name): \(data)")
-      },
+      onNewTopicData: { topic, timestamp, data in },
       onConnect: {
         NSLog("Connected to NetworkTables")
         self.updateStateLabel(active: true)
@@ -61,6 +61,11 @@ class NetworkTablesHandler {
       robotKey = "/SmartDashboard/Field/Robot"
       UserDefaults.standard.set(robotKey, forKey: "robotKey")
     }
+    trajectoryKey = UserDefaults.standard.string(forKey: "trajectoryKey")
+    if trajectoryKey == nil {
+      trajectoryKey = ""
+      UserDefaults.standard.set(trajectoryKey, forKey: "trajectoryKey")
+    }
   }
 
   func setNewRobot(robot: SCNNode) {
@@ -75,7 +80,7 @@ class NetworkTablesHandler {
       return
     }
     if client.serverConnectionActive {
-      self.updateStateLabel(active: true)
+      self.updateStateLabel(active: false)
       client.disconnect()
     }
     client.connect(serverBaseAddr: ip!, port: port ?? "5810")
@@ -84,12 +89,16 @@ class NetworkTablesHandler {
       client.unsubscribe(subID: robotSubID!)
     }
 
+    if trajectorySubID != nil {
+      client.unsubscribe(subID: trajectorySubID!)
+    }
+
     // Subscribe to robot position updates
     robotSubID = client.subscribe(
       key: robotKey!,
       callback: { topic, timestamp, data in
         // [x, y, rot (degrees)]
-        let newPos = topic.getDoubleArray()
+        let newPos = data as? [Double]
         self.robotNode.position = SCNVector3(
           -newPos![0] + self.fieldCenterX, 0, newPos![1] - self.fieldCenterY)
         self.lastPosition = self.robotNode.position
@@ -97,6 +106,24 @@ class NetworkTablesHandler {
         self.lastRotation = self.robotNode.eulerAngles.y
         self.sceneView?.updateRobotNodeTransform()
       }, periodic: 0.001)
+
+    // Subscribe to trajectory updates
+    if trajectoryKey != nil && trajectoryKey != "" {
+      trajectorySubID = client.subscribe(
+        key: trajectoryKey!,
+        callback: { topic, timestamp, data in
+          // [x, y, ignore, x, y, ignore, ...]
+          let points = data as? [Double]
+          var positions: [SCNVector3] = []
+          for i in stride(from: 0, to: points!.count, by: 3) {
+            positions.append(
+              SCNVector3(
+                -points![i] + self.fieldCenterX, 0, points![i + 1] - self.fieldCenterY))
+          }
+          // Draw a line between each point in the sceneView
+          self.sceneView?.drawTrajectory(points: positions)
+        }, periodic: 0.1)
+    }
   }
 
   private func updateStateLabel(active: Bool) {

@@ -42,15 +42,15 @@ If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/
 
 ## In progress features
 
-Features that are being worked on, but are not included in a release yet.
+Features that are being worked on. Features with a checkmark are in a working state, but aren't included in the latest release yet.
 
 - [x] AprilTag Detector
-- [ ] Command Scheduler Display
+- [x] Command Scheduler Display
+- [ ] Trajectory Rendering
 - [ ] Alignment with real field via AprilTags
 
 ## Planned Features (in no particular order)
 
-- [ ] Trajectory Rendering
 - [ ] Field Switcher
 - [ ] Field Element Placement
 - [ ] Mechanism Rendering (maybe)

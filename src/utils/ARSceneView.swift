@@ -149,6 +149,55 @@ class ARSceneView: ARSCNView {
     }
   }
 
+  func drawTrajectory(points: [SCNVector3]) {
+    NSLog("Drawing trajectory with \(points.count) points. First point: \(points.first!)")
+    guard points.count > 1 else { return }
+
+    for i in 0..<points.count - 1 {
+      let startPoint = points[i]
+      let endPoint = points[i + 1]
+
+      // Calculate the distance between points
+      let distance = SCNVector3Distance(startPoint: startPoint, endPoint: endPoint)
+
+      // Create a cylinder with the distance as the height
+      let cylinder = SCNCylinder(radius: 0.005, height: CGFloat(distance))
+      cylinder.radialSegmentCount = 6  // Makes the cylinder look more like a line
+      cylinder.firstMaterial?.diffuse.contents = UIColor.red  // Set color
+
+      // Create a node for the cylinder
+      let cylinderNode = SCNNode(geometry: cylinder)
+
+      // Calculate midpoint for positioning
+      let midPoint = SCNVector3(
+        x: (startPoint.x + endPoint.x) / 2,
+        y: (startPoint.y + endPoint.y) / 2,
+        z: (startPoint.z + endPoint.z) / 2)
+      cylinderNode.position = midPoint
+
+      // Calculate the angle between the points
+      let dx = endPoint.x - startPoint.x
+      let dy = endPoint.y - startPoint.y
+      let dz = endPoint.z - startPoint.z
+      let angle = atan2(dy, sqrt(dx * dx + dz * dz))
+
+      // Rotate the cylinder to align with the two points
+      cylinderNode.eulerAngles.x = Float.pi / 2  // Adjust for cylinder's default orientation
+      cylinderNode.eulerAngles.y = 0
+      cylinderNode.eulerAngles.z = -angle
+
+      // Add the cylinder to the fieldNode
+      fieldNode.addChildNode(cylinderNode)
+    }
+  }
+
+  func SCNVector3Distance(startPoint: SCNVector3, endPoint: SCNVector3) -> Float {
+    let dx = endPoint.x - startPoint.x
+    let dy = endPoint.y - startPoint.y
+    let dz = endPoint.z - startPoint.z
+    return sqrt(dx * dx + dy * dy + dz * dz)
+  }
+
   func imageFrom() -> UIImage? {
     guard let currentFrame = self.session.currentFrame else {
       return nil

@@ -76,6 +76,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
           type: .toggleSwitch(
             label: "Detect AprilTags",
             defaultValue: UserDefaults.standard.bool(forKey: "detectAprilTags"))),
+        Row(
+          type: .textField(
+            placeholder: "Trajectory NT Key",
+            defaultValue: UserDefaults.standard.string(forKey: "trajectoryKey")
+          )),
       ],
       [
         Row(
@@ -126,11 +131,6 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             label: "Size",
             defaultValue: UserDefaults.standard.float(forKey: "schedulerSize"), min: 0.05,
             max: 1)),
-        Row(
-          type: .textField(
-            placeholder: "Scheduler NT Key",
-            defaultValue: UserDefaults.standard.string(forKey: "schedulerKey")
-          )),
       ],
       [
         Row(
@@ -456,6 +456,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let portTextField = cellViews[IndexPath(row: 2, section: 0)] as? UITextField
     let manualAddressSwitch = cellViews[IndexPath(row: 3, section: 0)] as? UISwitch
     let robotKeyTextField = cellViews[IndexPath(row: 0, section: 2)] as? UITextField
+    let trajectoryKeyTextField = cellViews[IndexPath(row: 4, section: 1)] as? UITextField
 
     if manualAddressSwitch?.isOn ?? false {
       NTHandler.ip = ipTextField?.text
@@ -479,6 +480,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
 
     NTHandler.port = portTextField?.text
     NTHandler.robotKey = robotKeyTextField?.text
+    NTHandler.trajectoryKey = trajectoryKeyTextField?.text
 
     let xOffsetTextField = cellViews[IndexPath(row: 1, section: 3)] as? UITextField
     let yOffsetTextField = cellViews[IndexPath(row: 2, section: 3)] as? UITextField
@@ -519,7 +521,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let schedulerHeightSlider = cellViews[IndexPath(row: 1, section: 4)] as? UISlider
     let schedulerSizeSlider = cellViews[IndexPath(row: 2, section: 4)] as? UISlider
 
-    UserDefaults.standard.set(schedulerVisibleSwitch?.isOn, forKey: "schedulerVisible")
+    UserDefaults.standard.set(schedulerVisibleSwitch?.isOn ?? true, forKey: "schedulerVisible")
     UserDefaults.standard.set(schedulerHeightSlider?.value ?? 3, forKey: "schedulerHeight")
     UserDefaults.standard.set(schedulerSizeSlider?.value ?? 0.25, forKey: "schedulerSize")
 
@@ -529,19 +531,16 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
       + (controller.scheduler.height * controller.sceneView.fieldNode.scale.y)
 
     let newSize = schedulerSizeSlider?.value ?? 0.25
-    let oldSize = controller.scheduler.size
-    controller.scheduler.node.scale = SCNVector3(
-      (controller.scheduler.node.scale.x / oldSize) * newSize,
-      (controller.scheduler.node.scale.y / oldSize) * newSize,
-      (controller.scheduler.node.scale.z / oldSize) * newSize)
-    controller.scheduler.size = newSize
+    controller.scheduler.planeSize = newSize
+    controller.scheduler.regenImage()
 
-    controller.scheduler.node.isHidden = !(schedulerVisibleSwitch?.isOn ?? false)
+    controller.scheduler.node.isHidden = !(schedulerVisibleSwitch?.isOn ?? true)
 
     UserDefaults.standard.set(teamNumberTextField?.text, forKey: "teamNumber")
     UserDefaults.standard.set(ipTextField?.text, forKey: "ip")
     UserDefaults.standard.set(portTextField?.text, forKey: "port")
     UserDefaults.standard.set(robotKeyTextField?.text, forKey: "robotKey")
+    UserDefaults.standard.set(trajectoryKeyTextField?.text, forKey: "trajectoryKey")
     UserDefaults.standard.set(manualAddressSwitch?.isOn, forKey: "manualAddress")
 
     UserDefaults.standard.set(customRobotSelected, forKey: "customRobotSelected")
@@ -602,6 +601,9 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     case 3:
       return
         "You can convert your model to .usdz online. Only one robot can be imported at a time; subsequent imports will overwrite. Offsets can be changed after import."
+    case 4:
+      return
+        "Uses /SmartDashboard/Scheduler to display scheduled commands. To publish this from your robot code, you can add SmartDashboard.putData(CommandScheduler.getInstance()); to robotPeriodic."
     default:
       return nil
     }

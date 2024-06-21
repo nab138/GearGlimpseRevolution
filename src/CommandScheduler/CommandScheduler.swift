@@ -1,47 +1,78 @@
 import ARKit
 
 class CommandScheduler {
-  var subscriptionID: Int?
+  var namesSubID: Int?
 
   let view = CommandSchedulerView()
   var node: SCNNode!
   var plane: SCNPlane!
   var arScene: ARSceneView!
 
+  var planeSize: Float = 0.25
   var size: Float = 0.25
   var height: Float = 3.0
   var visible = true
 
-  // add constructor
-  init(scene: ARSceneView) {
-    arScene = scene
+  var commands: [String] = []
 
+  var hasUpdatedLabel = false
+
+  init(scene: ARSceneView) {
+    NSLog("Initializing CommandScheduler")
+    arScene = scene
     loadViewNode()
   }
 
   func subscribeToCommandScheduler(client: NT4Client, key: String) {
-    if subscriptionID != nil {
-      client.unsubscribe(subID: subscriptionID!)
+    if namesSubID != nil {
+      client.unsubscribe(subID: namesSubID!)
     }
-    subscriptionID = client.subscribe(
-      key: key, callback: { topic, timestamp, data in }, periodic: 0.1)
+    namesSubID = client.subscribe(
+      key: key + "/Names",
+      callback: { topic, timestamp, data in
+        if let commands = data as? [String] {
+          NSLog("Recieved commands: \(commands.joined(separator: ", "))")
+          if commands != self.commands {
+            self.commands = commands
+            self.updateCommands()
+          }
+        }
+      }, periodic: 0.1)
   }
 
-  func loadViewNode() {
-    let image = view.asImage()
-    let aspectRatio = image.size.width / image.size.height
-    plane = SCNPlane(width: CGFloat(size), height: CGFloat(size) / aspectRatio)
-    plane.firstMaterial?.diffuse.contents = image
+  private func loadViewNode() {
+    plane = SCNPlane(width: CGFloat(planeSize), height: CGFloat(planeSize))
     plane.firstMaterial?.isDoubleSided = true
 
     node = SCNNode(geometry: plane)
+    regenImage()
 
     let billboardConstraint = SCNBillboardConstraint()
     billboardConstraint.freeAxes = [.Y, .X]
     node.constraints = [billboardConstraint]
 
-    node.isHidden = UserDefaults.standard.bool(forKey: "schedulerVisible")
+    node.isHidden = !UserDefaults.standard.bool(forKey: "schedulerVisible")
+  }
 
-    arScene.scene.rootNode.addChildNode(node)
+  private func updateCommands() {
+    view.setCommands(commands)
+
+    if commands.count > 0 {
+      view.updateLabel(with: "\(commands.count) Commands")
+    } else {
+      view.updateLabel(with: "No Data")
+    }
+
+    regenImage()
+  }
+
+  func regenImage() {
+    let image = view.asImage()
+    let aspectRatio = image.size.width / image.size.height
+    plane.width = CGFloat(planeSize)
+    plane.height = CGFloat(planeSize) / aspectRatio
+    plane.firstMaterial?.diffuse.contents = image
+
+    node.geometry = plane
   }
 }

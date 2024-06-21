@@ -133,8 +133,12 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
 
     NTHandler = NetworkTablesHandler(
       robotNode: robotNode, statusLabel: statusLabel, sceneView: sceneView)
+
     // Attempts a connection with the saved connection info
     NTHandler.connect()
+
+    scheduler.subscribeToCommandScheduler(
+      client: NTHandler.client, key: "/SmartDashboard/Scheduler")
   }
 
   override func viewWillDisappear(_ animated: Bool) {
