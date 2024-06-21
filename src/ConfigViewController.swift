@@ -80,7 +80,8 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
       [
         Row(
           type: .textField(
-            placeholder: "Robot Key", defaultValue: UserDefaults.standard.string(forKey: "robotKey")
+            placeholder: "Robot NT Key",
+            defaultValue: UserDefaults.standard.string(forKey: "robotKey")
           )),
         Row(type: .robotConfig(robot: Robot.kitBot)),
         Row(type: .robotConfig(robot: Robot.robot3044)),
@@ -125,6 +126,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             label: "Size",
             defaultValue: UserDefaults.standard.float(forKey: "schedulerSize"), min: 0.05,
             max: 1)),
+        Row(
+          type: .textField(
+            placeholder: "Scheduler NT Key",
+            defaultValue: UserDefaults.standard.string(forKey: "schedulerKey")
+          )),
       ],
       [
         Row(
@@ -517,20 +523,20 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     UserDefaults.standard.set(schedulerHeightSlider?.value ?? 3, forKey: "schedulerHeight")
     UserDefaults.standard.set(schedulerSizeSlider?.value ?? 0.25, forKey: "schedulerSize")
 
-    controller.schedulerHeight = schedulerHeightSlider?.value ?? 3
-    controller.schedulerNode.position.y =
+    controller.scheduler.height = schedulerHeightSlider?.value ?? 3
+    controller.scheduler.node.position.y =
       controller.sceneView.fieldNode.position.y
-      + (controller.schedulerHeight * controller.sceneView.fieldNode.scale.y)
+      + (controller.scheduler.height * controller.sceneView.fieldNode.scale.y)
 
     let newSize = schedulerSizeSlider?.value ?? 0.25
-    let oldSize = controller.schedulerSize ?? 0.25
-    controller.schedulerNode.scale = SCNVector3(
-      (controller.schedulerNode.scale.x / oldSize) * newSize,
-      (controller.schedulerNode.scale.y / oldSize) * newSize,
-      (controller.schedulerNode.scale.z / oldSize) * newSize)
-    controller.schedulerSize = newSize
+    let oldSize = controller.scheduler.size
+    controller.scheduler.node.scale = SCNVector3(
+      (controller.scheduler.node.scale.x / oldSize) * newSize,
+      (controller.scheduler.node.scale.y / oldSize) * newSize,
+      (controller.scheduler.node.scale.z / oldSize) * newSize)
+    controller.scheduler.size = newSize
 
-    controller.schedulerNode.isHidden = !(schedulerVisibleSwitch?.isOn ?? false)
+    controller.scheduler.node.isHidden = !(schedulerVisibleSwitch?.isOn ?? false)
 
     UserDefaults.standard.set(teamNumberTextField?.text, forKey: "teamNumber")
     UserDefaults.standard.set(ipTextField?.text, forKey: "ip")

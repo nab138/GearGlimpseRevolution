@@ -43,20 +43,8 @@ class CommandSchedulerView: UIView {
     return image!
   }
 
-  func asNode(size: CGFloat) -> SCNNode {
-    let image = asImage()
-    let aspectRatio = image.size.width / image.size.height
-    let plane = SCNPlane(width: size, height: size / aspectRatio)
-    plane.firstMaterial?.diffuse.contents = image
-    plane.firstMaterial?.isDoubleSided = true
-
-    let commandSchedulerNode = SCNNode(geometry: plane)
-
-    let billboardConstraint = SCNBillboardConstraint()
-    billboardConstraint.freeAxes = [.Y, .X]
-    commandSchedulerNode.constraints = [billboardConstraint]
-
-    return commandSchedulerNode
+  func updateLabel(with text: String) {
+    mainLabel.text = text
+    mainLabel.sizeToFit()
   }
-
 }

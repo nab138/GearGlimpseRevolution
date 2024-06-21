@@ -29,10 +29,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
   var isDetectingAprilTags = false
 
   // Command Scheduler
-  var schedulerView: CommandSchedulerView!
-  var schedulerNode: SCNNode!
-  var schedulerHeight: Float!
-  var schedulerSize: Float!
+  var scheduler: CommandScheduler!
 
   override func loadView() {
     super.loadView()
@@ -108,7 +105,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
       ])
     }
 
-    schedulerView = CommandSchedulerView()
+    scheduler = CommandScheduler(scene: sceneView)
   }
 
   override func viewDidLoad() {
@@ -128,9 +125,6 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
 
     // Loads the saved robot and assigns a few properties from UserDefaults
     loadPrefs()
-
-    schedulerNode = schedulerView.asNode(size: CGFloat(schedulerSize))
-    schedulerNode.isHidden = UserDefaults.standard.bool(forKey: "schedulerVisible")
 
     sceneView.curContainerDummyNode?.isHidden = true
 
