@@ -40,12 +40,16 @@ If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/
 - [x] Custom robot import
 - [x] Transparent/Invisible Field
 
-## Planned Features (in no particular order)
+## In progress features
 
-Features marked with a checkmark have been completed but not included in the latest release.
+Features that are being worked on, but are not included in a release yet.
 
 - [x] AprilTag Detector
+- [ ] Command Scheduler Display
 - [ ] Alignment with real field via AprilTags
+
+## Planned Features (in no particular order)
+
 - [ ] Trajectory Rendering
 - [ ] Field Switcher
 - [ ] Field Element Placement

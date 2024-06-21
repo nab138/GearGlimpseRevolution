@@ -5,6 +5,17 @@ extension RootViewController {
     if UserDefaults.standard.object(forKey: "fieldVisible") == nil {
       UserDefaults.standard.set(true, forKey: "fieldVisible")
     }
+    if UserDefaults.standard.object(forKey: "schedulerVisible") == nil {
+      UserDefaults.standard.set(true, forKey: "schedulerVisible")
+    }
+    if UserDefaults.standard.object(forKey: "schedulerHeight") == nil {
+      UserDefaults.standard.set(3, forKey: "schedulerHeight")
+    }
+    schedulerHeight = UserDefaults.standard.float(forKey: "schedulerHeight")
+    if UserDefaults.standard.object(forKey: "schedulerSize") == nil {
+      UserDefaults.standard.set(0.25, forKey: "schedulerSize")
+    }
+    schedulerSize = UserDefaults.standard.float(forKey: "schedulerSize")
 
     sceneView.fieldNode.isHidden = !(UserDefaults.standard.bool(forKey: "fieldVisible"))
     sceneView.fieldNode.opacity = UserDefaults.standard.bool(forKey: "fieldTransparent") ? 0.5 : 1.0

@@ -9,7 +9,6 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
   // AR elements
   var sceneView: ARSceneView!
   var robotNode: SCNNode!
-  var labelNode: SCNNode!
   var hasPlacedField = false
 
   // NetworkTables
@@ -28,6 +27,12 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
   var failedOnce = false
   var period = 0.5
   var isDetectingAprilTags = false
+
+  // Command Scheduler
+  var schedulerView: CommandSchedulerView!
+  var schedulerNode: SCNNode!
+  var schedulerHeight: Float!
+  var schedulerSize: Float!
 
   override func loadView() {
     super.loadView()
@@ -102,6 +107,8 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
         openSettingsLabel.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
       ])
     }
+
+    schedulerView = CommandSchedulerView()
   }
 
   override func viewDidLoad() {
@@ -119,45 +126,11 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     sceneView.fieldNode = field
     sceneView.fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
 
-    // Create a UILabel
-    let label = PaddedLabel()
-    label.text = "GearGlimpseRevolution"
-    label.textColor = UIColor.white
-    label.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-    label.layer.cornerRadius = 10
-    label.clipsToBounds = true
-    label.rightInset = 10
-    label.leftInset = 10
-    label.topInset = 5
-    label.bottomInset = 5
-
-    let textSize = label.text!.size(withAttributes: [NSAttributedString.Key.font: label.font!])
-    let textWidth = textSize.width + label.leftInset + label.rightInset
-
-    // Set the label's frame
-    label.frame = CGRect(x: 0, y: 0, width: textWidth, height: label.frame.height)
-
-    // Convert the UILabel to UIImage
-    UIGraphicsBeginImageContextWithOptions(label.bounds.size, false, 0.0)
-    label.layer.render(in: UIGraphicsGetCurrentContext()!)
-    let image = UIGraphicsGetImageFromCurrentImageContext()
-    UIGraphicsEndImageContext()
-
-    let aspectRatio = label.bounds.width / label.bounds.height
-    let plane = SCNPlane(width: 0.25, height: 0.25 / aspectRatio)
-    plane.firstMaterial?.diffuse.contents = image
-    plane.firstMaterial?.isDoubleSided = true
-
-    // Create a SCNNode with the SCNPlane
-    labelNode = SCNNode(geometry: plane)
-
-    // Add a billboard constraint so the label always faces the viewer
-    let billboardConstraint = SCNBillboardConstraint()
-    billboardConstraint.freeAxes = SCNBillboardAxis.all
-    labelNode.constraints = [billboardConstraint]
-
     // Loads the saved robot and assigns a few properties from UserDefaults
     loadPrefs()
+
+    schedulerNode = schedulerView.asNode(size: CGFloat(schedulerSize))
+    schedulerNode.isHidden = UserDefaults.standard.bool(forKey: "schedulerVisible")
 
     sceneView.curContainerDummyNode?.isHidden = true
 

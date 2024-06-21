@@ -47,13 +47,14 @@ extension RootViewController {
     sceneView.fieldNode.position = position
     sceneView.updateRobotNodeTransform()
 
-    labelNode.position = SCNVector3(position.x, position.y + 0.5, position.z)
+    schedulerNode.position = SCNVector3(
+      position.x, position.y + schedulerHeight * sceneView.fieldNode.scale.y, position.z)
 
     if !hasPlacedField {
       sceneView.scene.rootNode.addChildNode(sceneView.fieldNode)
       hasPlacedField = true
       sceneView.curContainerDummyNode?.isHidden = false
-      sceneView.scene.rootNode.addChildNode(labelNode)
+      sceneView.scene.rootNode.addChildNode(schedulerNode)
     }
   }
 
@@ -70,6 +71,13 @@ extension RootViewController {
     sceneView.fieldNode.scale = SCNVector3(
       sceneView.fieldNode.scale.x * scale, sceneView.fieldNode.scale.y * scale,
       sceneView.fieldNode.scale.z * scale)
+
+    schedulerNode.scale = SCNVector3(
+      schedulerNode.scale.x * scale, schedulerNode.scale.y * scale,
+      schedulerNode.scale.z * scale)
+
+    schedulerNode.position.y =
+      sceneView.fieldNode.position.y + (schedulerHeight * sceneView.fieldNode.scale.y)
 
     sender.scale = 1.0
     sceneView.updateRobotNodeTransform()

@@ -11,6 +11,7 @@ enum CellType {
   case customRobotConfig
   case importRobot
   case offsetField(label: String, defaultValue: String?)
+  case slider(label: String, defaultValue: Float, min: Float, max: Float)
 }
 
 struct Row {
@@ -108,6 +109,22 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         Row(
           type: .offsetField(
             label: "Z Rot", defaultValue: UserDefaults.standard.string(forKey: "zRot") ?? "0")),
+      ],
+      [
+        Row(
+          type: .toggleSwitch(
+            label: "Visible",
+            defaultValue: UserDefaults.standard.bool(forKey: "schedulerVisible"))),
+        Row(
+          type: .slider(
+            label: "Height",
+            defaultValue: UserDefaults.standard.float(forKey: "schedulerHeight"),
+            min: 0, max: 10)),
+        Row(
+          type: .slider(
+            label: "Size",
+            defaultValue: UserDefaults.standard.float(forKey: "schedulerSize"), min: 0.05,
+            max: 1)),
       ],
       [
         Row(
@@ -294,6 +311,32 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         textField.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
       ])
       cellViews[indexPath] = textField
+    case .slider(let label, let defaultValue, let min, let max):
+      let slider = UISlider()
+      slider.minimumValue = min
+      slider.maximumValue = max
+      slider.value = defaultValue
+      slider.translatesAutoresizingMaskIntoConstraints = false
+
+      let dynamicLabel = UILabel()
+      dynamicLabel.text = label
+      dynamicLabel.sizeToFit()
+      dynamicLabel.translatesAutoresizingMaskIntoConstraints = false
+
+      cell.contentView.addSubview(dynamicLabel)
+      cell.contentView.addSubview(slider)
+
+      NSLayoutConstraint.activate([
+        dynamicLabel.leadingAnchor.constraint(
+          equalTo: cell.contentView.leadingAnchor, constant: 15),
+        dynamicLabel.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+
+        slider.leadingAnchor.constraint(equalTo: dynamicLabel.trailingAnchor, constant: 15),
+        slider.trailingAnchor.constraint(equalTo: cell.contentView.trailingAnchor, constant: -15),
+        slider.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+      ])
+
+      cellViews[indexPath] = slider
     }
     return cell
   }
@@ -385,14 +428,16 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
   {
     switch section {
     case 0:
-      return "Connection Settings"
+      return "Connection"
     case 1:
-      return "Field Settings"
+      return "Field"
     case 2:
-      return "Robot Settings"
+      return "Robot"
     case 3:
       return "Custom Robot Setup"
     case 4:
+      return "Command Scheduler"
+    case 5:
       return "Developer Settings"
     default:
       return nil
@@ -463,6 +508,29 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         customRobot?.rotations = rotations
       }
     }
+
+    let schedulerVisibleSwitch = cellViews[IndexPath(row: 0, section: 4)] as? UISwitch
+    let schedulerHeightSlider = cellViews[IndexPath(row: 1, section: 4)] as? UISlider
+    let schedulerSizeSlider = cellViews[IndexPath(row: 2, section: 4)] as? UISlider
+
+    UserDefaults.standard.set(schedulerVisibleSwitch?.isOn, forKey: "schedulerVisible")
+    UserDefaults.standard.set(schedulerHeightSlider?.value ?? 3, forKey: "schedulerHeight")
+    UserDefaults.standard.set(schedulerSizeSlider?.value ?? 0.25, forKey: "schedulerSize")
+
+    controller.schedulerHeight = schedulerHeightSlider?.value ?? 3
+    controller.schedulerNode.position.y =
+      controller.sceneView.fieldNode.position.y
+      + (controller.schedulerHeight * controller.sceneView.fieldNode.scale.y)
+
+    let newSize = schedulerSizeSlider?.value ?? 0.25
+    let oldSize = controller.schedulerSize ?? 0.25
+    controller.schedulerNode.scale = SCNVector3(
+      (controller.schedulerNode.scale.x / oldSize) * newSize,
+      (controller.schedulerNode.scale.y / oldSize) * newSize,
+      (controller.schedulerNode.scale.z / oldSize) * newSize)
+    controller.schedulerSize = newSize
+
+    controller.schedulerNode.isHidden = !(schedulerVisibleSwitch?.isOn ?? false)
 
     UserDefaults.standard.set(teamNumberTextField?.text, forKey: "teamNumber")
     UserDefaults.standard.set(ipTextField?.text, forKey: "ip")
