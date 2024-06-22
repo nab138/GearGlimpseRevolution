@@ -593,7 +593,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         "You can convert your model to .usdz online. Only one robot can be imported at a time; subsequent imports will overwrite. Offsets can be changed after import."
     case 4:
       return
-        "To publish the command scheduler from robot code, add SmartDashboard.putData(CommandScheduler.getInstance()); to robotPeriodic."
+        "To publish the scheduler from robot code, add SmartDashboard.putData(CommandScheduler.getInstance()); to robotPeriodic."
     default:
       return nil
     }
