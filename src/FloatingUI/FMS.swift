@@ -12,8 +12,8 @@ enum ControlMode: String {
 }
 
 enum EStop: String {
-  case stopped = "E-Stop: Emergency Stopped"
-  case normal = "E-Stop: Normal"
+  case stopped = "Emergency Stopped"
+  case normal = "Not E-Stopped"
 }
 
 enum Alliance: String {
