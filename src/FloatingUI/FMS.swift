@@ -39,13 +39,15 @@ class FMS {
 
   var planeSize: Float = 0.25
 
+  private var updateTimer: Timer?
+
   /*
     Field	Mask	    Comment
     E-Stop	x.......	0: Normal, 1: Emergency Stopped
     Enabled	.....x..	0: Disabled, 1: Enabled
     Mode	......xx	0: TeleOp, 1: Test, 2: Autonomous
   */
-  let estopMask: Int8 = -128
+  let estopMask: Int8 = 0b0001000
   let enabledMask: Int8 = 0b000001
   let modeMask: Int8 = 0b0000110
 
@@ -54,6 +56,9 @@ class FMS {
   var estopStatus: EStop?
   var alliance: Alliance?
   var station: Station?
+
+  var displayedStation: Station?
+  var displayedAlliance: Alliance?
 
   init(scene: ARSceneView) {
     arScene = scene
@@ -141,7 +146,6 @@ class FMS {
           } else {
             self.alliance = .blue
           }
-          self.updateView()
         }
       }, periodic: 0.1, all: true)
 
@@ -162,9 +166,25 @@ class FMS {
           default:
             self.station = nil
           }
-          self.updateView()
+          
         }
       }, periodic: 0.1, all: true)
+
+    checkForStationAllianceUpdates()
+  }
+
+  private func checkForStationAllianceUpdates() {
+    if updateTimer != nil {
+      updateTimer?.invalidate()
+    }
+    updateTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+      guard let self = self else { return }
+      if self.displayedAlliance != self.alliance || self.displayedStation != self.station {
+        self.displayedAlliance = self.alliance
+        self.displayedStation = self.station
+        self.updateView()
+      }
+    }
   }
 
   private func updateView() {
@@ -174,9 +194,9 @@ class FMS {
     view.enabledLabel.sizeToFit()
     view.estopLabel.text = estopStatus?.rawValue ?? "E-Stop: No Data"
     view.estopLabel.sizeToFit()
-    view.allianceLabel.text = alliance?.rawValue ?? "Alliance: No Data"
+    view.allianceLabel.text = displayedAlliance?.rawValue ?? "Alliance: No Data"
     view.allianceLabel.sizeToFit()
-    view.stationLabel.text = station?.rawValue ?? "Station: No Data"
+    view.stationLabel.text = displayedStation?.rawValue ?? "Station: No Data"
     view.stationLabel.sizeToFit()
 
     regenImage()
