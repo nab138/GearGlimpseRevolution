@@ -54,7 +54,7 @@ class NT4Client: WebSocketDelegate {
     }
     serverConnectionRequested = true
     let serverAddr = "ws://" + serverBaseAddr + ":" + port + "/nt/" + appName
-    NSLog("Connecting to \(serverAddr)")
+    NSLog("[NT4] Connecting to \(serverAddr)")
     let url = URL(string: serverAddr)!
     let urlRequest = URLRequest(url: url)
     ws = WebSocket(request: urlRequest)
@@ -190,7 +190,7 @@ Unsubscribe from a NetworkTables topic
         guard let decodedObj = decodedObj else { return }
         handleMsgPackMessage(msg: decodedObj)
       } catch {
-        NSLog("Something went wrong while unpacking data: \(error)")
+        NSLog("[NT4] Something went wrong while unpacking data: \(error)")
       }
     case .ping(_):
       break
@@ -203,15 +203,15 @@ Unsubscribe from a NetworkTables topic
     case .cancelled:
       serverConnectionActive = false
       onDisconnect?("Cancelled", 0)
-      NSLog("websocket is cancelled")
+      NSLog("[NT4] Websocket Cancelled")
     case .error(_):
       serverConnectionActive = false
       onDisconnect?("Error", 0)
-      NSLog("An error occurred")
+      NSLog("[NT4] An error occurred")
     case .peerClosed:
       serverConnectionActive = false
       onDisconnect?("Peer closed", 0)
-      NSLog("Peer closed")
+      NSLog("[NT4] Peer closed")
     }
   }
 
@@ -224,7 +224,7 @@ Unsubscribe from a NetworkTables topic
           serverTopics[newTopic.name] = newTopic
           onTopicAnnounce?(newTopic)
         default:
-          NSLog("Unknown method: \(method)")
+          NSLog("[NT4] Unknown method: \(method)")
         }
       }
     }
@@ -235,7 +235,7 @@ Unsubscribe from a NetworkTables topic
     if unsignedTimestamp == 0 {
       unsignedTimestamp = (msg[1] as? UInt64) ?? 0
       if unsignedTimestamp == 0 {
-        NSLog("Failed to decode timestamp, it is \(type(of: msg[1]!))")
+        NSLog("[NT4] Failed to decode timestamp, it is \(type(of: msg[1]!))")
       }
     }
     let timestamp = Int64(unsignedTimestamp)
@@ -244,35 +244,39 @@ Unsubscribe from a NetworkTables topic
     if let topicID = msg[0]! as? Int8 {
       if topicID == -1 {
         guard let clientTimestamp = data as? Int64 else {
-          NSLog("Failed to decode clientTimestamp, it is \(type(of: data))")
+          NSLog("[NT4] Failed to decode clientTimestamp, it is \(type(of: data))")
           return
         }
-        NSLog("Received timestamp: \(clientTimestamp)")
-        // Handle receive timestamp
+        NSLog("[NT4] Received timestamp: \(clientTimestamp)")
         wsHandleReceiveTimestamp(serverTimestamp: timestamp, clientTimestamp: clientTimestamp)
+      } else {
+        handleNewTopicData(topicID: UInt16(topicID), timestamp: timestamp, data: data)
       }
     } else if let topicID = msg[0]! as? UInt16 {
-      var topic: NTTopic? = nil
-      // Check to see if the topic ID matches any of the server topics
-      for serverTopic in serverTopics.values {
-        if serverTopic.uid == topicID {
-          topic = serverTopic
-          break
-        }
-      }
-      // If the topic is not found, return
-      guard let topic = topic else { return }
-      topic.latestValue = data
-      topic.latestTimestamp = timestamp
-      onNewTopicData?(topic, timestamp, data)
-      if let callback = subscriptionCallbacks[topic.name] {
-        callback(topic, timestamp, data)
-      }
+      handleNewTopicData(topicID: topicID, timestamp: timestamp, data: data)
     } else {
-      NSLog("Failed to decode topicID")
+      NSLog("[NT4] Failed to decode topicID, it was \(type(of: msg[0]!))")
       return
     }
+  }
 
+  private func handleNewTopicData(topicID: UInt16, timestamp: Int64, data: Any) {
+    var topic: NTTopic? = nil
+    // Check to see if the topic ID matches any of the server topics
+    for serverTopic in serverTopics.values {
+      if serverTopic.uid == topicID {
+        topic = serverTopic
+        break
+      }
+    }
+    // If the topic is not found, return
+    guard let topic = topic else { return }
+    topic.latestValue = data
+    topic.latestTimestamp = timestamp
+    onNewTopicData?(topic, timestamp, data)
+    if let callback = subscriptionCallbacks[topic.name] {
+      callback(topic, timestamp, data)
+    }
   }
 
   private func wsHandleReceiveTimestamp(serverTimestamp: Int64, clientTimestamp: Int64) {
@@ -299,7 +303,7 @@ Unsubscribe from a NetworkTables topic
       try data.pack(array)
       wsSendBinary(data: data)
     } catch {
-      NSLog("Failed to encode timestamp")
+      NSLog("[NT4] Failed to encode timestamp")
     }
   }
 
@@ -318,7 +322,7 @@ Unsubscribe from a NetworkTables topic
           string:
             "[{\"method\":\"\(method)\",\"params\":\(String(data: jsonData, encoding: .utf8)!)}]")
       } catch {
-        NSLog("Failed to encode JSON")
+        NSLog("[NT4] Failed to encode JSON")
       }
     }
   }

@@ -9,16 +9,12 @@ class CommandScheduler {
   var arScene: ARSceneView!
 
   var planeSize: Float = 0.25
-  var size: Float = 0.25
-  var height: Float = 3.0
-  var visible = true
 
   var commands: [String] = []
 
   var hasUpdatedLabel = false
 
   init(scene: ARSceneView) {
-    NSLog("Initializing CommandScheduler")
     arScene = scene
     loadViewNode()
   }
@@ -31,7 +27,6 @@ class CommandScheduler {
       key: key + "/Names",
       callback: { topic, timestamp, data in
         if let commands = data as? [String] {
-          NSLog("Recieved commands: \(commands.joined(separator: ", "))")
           if commands != self.commands {
             self.commands = commands
             self.updateCommands()

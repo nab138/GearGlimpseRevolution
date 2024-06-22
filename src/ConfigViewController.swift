@@ -92,9 +92,10 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             label: "Z Rot", defaultValue: UserDefaults.standard.string(forKey: "zRot") ?? "0")),
       ],
       [
-        Row(type: .toggleSwitch(label: "Visible", saveIn: "schedulerVisible")),
-        Row(type: .slider(label: "Height", min: 0, max: 10, saveIn: "schedulerHeight")),
-        Row(type: .slider(label: "Size", min: 0.05, max: 1, saveIn: "schedulerSize")),
+        Row(type: .toggleSwitch(label: "Scheduler Visible", saveIn: "schedulerVisible")),
+        Row(type: .toggleSwitch(label: "FMS Visible", saveIn: "fmsVisible")),
+        Row(type: .slider(label: "UI Height", min: 0, max: 10, saveIn: "schedulerHeight")),
+        Row(type: .slider(label: "UI Size", min: 0.05, max: 1, saveIn: "schedulerSize")),
       ],
       [
         Row(
@@ -439,7 +440,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     case 3:
       return "Custom Robot Setup"
     case 4:
-      return "Command Scheduler"
+      return "UI"
     case 5:
       return "Developer Settings"
     default:
@@ -511,19 +512,26 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     }
 
     let schedulerVisibleSwitch = cellViews[IndexPath(row: 0, section: 4)] as? UISwitch
-    let schedulerHeightSlider = cellViews[IndexPath(row: 1, section: 4)] as? UISlider
-    let schedulerSizeSlider = cellViews[IndexPath(row: 2, section: 4)] as? UISlider
+    let fmsVisibleSwitch = cellViews[IndexPath(row: 1, section: 4)] as? UISwitch
+    let uiHeightSlider = cellViews[IndexPath(row: 2, section: 4)] as? UISlider
+    let uiSizeSlider = cellViews[IndexPath(row: 3, section: 4)] as? UISlider
 
-    controller.scheduler.height = schedulerHeightSlider?.value ?? 3
-    controller.scheduler.node.position.y =
+    controller.floatingUI.height = uiHeightSlider?.value ?? 3
+    controller.floatingUI.node.position.y =
       controller.sceneView.fieldNode.position.y
-      + (controller.scheduler.height * controller.sceneView.fieldNode.scale.y)
+      + (controller.floatingUI.height * controller.sceneView.fieldNode.scale.y)
 
-    let newSize = schedulerSizeSlider?.value ?? 0.25
-    controller.scheduler.planeSize = newSize
-    controller.scheduler.regenImage()
+    let newSize = uiSizeSlider?.value ?? 0.25
+    controller.floatingUI.scheduler.planeSize = newSize
+    controller.floatingUI.scheduler.regenImage()
 
-    controller.scheduler.node.isHidden = !(schedulerVisibleSwitch?.isOn ?? true)
+    controller.floatingUI.fms.planeSize = newSize
+    controller.floatingUI.fms.regenImage()
+
+    controller.floatingUI.scheduler.node.isHidden = !(schedulerVisibleSwitch?.isOn ?? true)
+    controller.floatingUI.fms.node.isHidden = !(fmsVisibleSwitch?.isOn ?? true)
+
+    controller.floatingUI.adjustPositionsBasedOnHidden()
 
     UserDefaults.standard.set(customRobotSelected, forKey: "customRobotSelected")
 
@@ -585,7 +593,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         "You can convert your model to .usdz online. Only one robot can be imported at a time; subsequent imports will overwrite. Offsets can be changed after import."
     case 4:
       return
-        "Uses /SmartDashboard/Scheduler to display scheduled commands. To publish this from your robot code, you can add SmartDashboard.putData(CommandScheduler.getInstance()); to robotPeriodic."
+        "To publish the command scheduler from robot code, add SmartDashboard.putData(CommandScheduler.getInstance()); to robotPeriodic."
     default:
       return nil
     }

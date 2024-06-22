@@ -89,22 +89,22 @@ class NTTopic {
     } else if let id = data["pubuid"] as? Int {
       uid = id
     } else {
-      NSLog("Error: Topic does not have an id")
+      NSLog("[NT4] Error: Topic does not have an id")
     }
     if let n = data["name"] as? String {
       name = n
     } else {
-      NSLog("Error: Topic does not have a name")
+      NSLog("[NT4] Error: Topic does not have a name")
     }
     if let t = data["type"] as? String {
       type = t
     } else {
-      NSLog("Error: Topic does not have a type")
+      NSLog("[NT4] Error: Topic does not have a type")
     }
     if let p = data["properties"] as? [String: Any] {
       properties = p
     } else {
-      NSLog("Error: Topic does not have properties")
+      NSLog("[NT4] Error: Topic does not have properties")
     }
   }
 

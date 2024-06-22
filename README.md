@@ -50,7 +50,7 @@ Features that are being worked on. Features with a checkmark are in a working st
 - [x] Command Scheduler Display
 - [x] Trajectory Rendering
 - [ ] Alignment with real field via AprilTags
-- [ ] FMS state info display (enabled, match time, etc)
+- [x] FMS state info display (enabled, mode, alliance, etc)
 
 ## Planned Features (in no particular order)
 
