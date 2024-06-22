@@ -4,14 +4,15 @@ import UIKit
 
 enum CellType {
   case textField(
-    placeholder: String, defaultValue: String?, keyboardType: UIKeyboardType = .default)
-  case toggleSwitch(label: String, defaultValue: Bool = false)
+    placeholder: String, keyboardType: UIKeyboardType = .default,
+    saveIn: String, defaultValue: String? = nil)
+  case toggleSwitch(label: String, saveIn: String, defaultValue: Bool? = nil)
   case button(label: String, action: () -> Void)
   case robotConfig(robot: Robot)
   case customRobotConfig
   case importRobot
-  case offsetField(label: String, defaultValue: String?)
-  case slider(label: String, defaultValue: Float, min: Float, max: Float)
+  case offsetField(label: String, defaultValue: String)
+  case slider(label: String, min: Float, max: Float, saveIn: String, defaultValue: Float? = nil)
 }
 
 struct Row {
@@ -37,57 +38,31 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
   override func viewDidLoad() {
     super.viewDidLoad()
 
+    self.isModalInPresentation = true
+
     sections = [
       [
         Row(
           type: .textField(
-            placeholder: "Team Number (for roboRIO)",
-            defaultValue: UserDefaults.standard.string(forKey: "teamNumber"),
-            keyboardType: .numberPad)),
+            placeholder: "Team Number (for roboRIO)", keyboardType: .numberPad, saveIn: "teamNumber"
+          )),
         Row(
           type: .textField(
-            placeholder: "IP (for simulator)",
-            defaultValue: UserDefaults.standard.string(forKey: "ip"),
-            keyboardType: .numbersAndPunctuation)),
-        Row(
-          type: .textField(
-            placeholder: "Port", defaultValue: UserDefaults.standard.string(forKey: "port"),
-            keyboardType: .numberPad)),
-        Row(
-          type: .toggleSwitch(
-            label: "Manual Address",
-            defaultValue: UserDefaults.standard.bool(forKey: "manualAddress"))),
+            placeholder: "IP (for simulator)", keyboardType: .numbersAndPunctuation, saveIn: "ip")),
+        Row(type: .textField(placeholder: "Port", keyboardType: .numberPad, saveIn: "port")),
+        Row(type: .toggleSwitch(label: "Manual Address", saveIn: "manualAddress")),
       ],
       [
         Row(
           type: .button(
-            label: "Set to full size",
-            action: {
-              self.fieldNode.scale = SCNVector3(1, 1, 1)
-            })),
-        Row(
-          type: .toggleSwitch(
-            label: "Visible", defaultValue: UserDefaults.standard.bool(forKey: "fieldVisible"))),
-        Row(
-          type: .toggleSwitch(
-            label: "Transparent",
-            defaultValue: UserDefaults.standard.bool(forKey: "fieldTransparent"))),
-        Row(
-          type: .toggleSwitch(
-            label: "Detect AprilTags",
-            defaultValue: UserDefaults.standard.bool(forKey: "detectAprilTags"))),
-        Row(
-          type: .textField(
-            placeholder: "Trajectory NT Key",
-            defaultValue: UserDefaults.standard.string(forKey: "trajectoryKey")
-          )),
+            label: "Set to full size", action: { self.fieldNode.scale = SCNVector3(1, 1, 1) })),
+        Row(type: .toggleSwitch(label: "Visible", saveIn: "fieldVisible")),
+        Row(type: .toggleSwitch(label: "Transparent", saveIn: "fieldTransparent")),
+        Row(type: .toggleSwitch(label: "Detect AprilTags", saveIn: "detectAprilTags")),
+        Row(type: .textField(placeholder: "Trajectory NT Key", saveIn: "trajectoryKey")),
       ],
       [
-        Row(
-          type: .textField(
-            placeholder: "Robot NT Key",
-            defaultValue: UserDefaults.standard.string(forKey: "robotKey")
-          )),
+        Row(type: .textField(placeholder: "Robot NT Key", saveIn: "robotKey")),
         Row(type: .robotConfig(robot: Robot.kitBot)),
         Row(type: .robotConfig(robot: Robot.robot3044)),
         Row(type: .customRobotConfig),
@@ -117,20 +92,9 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
             label: "Z Rot", defaultValue: UserDefaults.standard.string(forKey: "zRot") ?? "0")),
       ],
       [
-        Row(
-          type: .toggleSwitch(
-            label: "Visible",
-            defaultValue: UserDefaults.standard.bool(forKey: "schedulerVisible"))),
-        Row(
-          type: .slider(
-            label: "Height",
-            defaultValue: UserDefaults.standard.float(forKey: "schedulerHeight"),
-            min: 0, max: 10)),
-        Row(
-          type: .slider(
-            label: "Size",
-            defaultValue: UserDefaults.standard.float(forKey: "schedulerSize"), min: 0.05,
-            max: 1)),
+        Row(type: .toggleSwitch(label: "Visible", saveIn: "schedulerVisible")),
+        Row(type: .slider(label: "Height", min: 0, max: 10, saveIn: "schedulerHeight")),
+        Row(type: .slider(label: "Size", min: 0.05, max: 1, saveIn: "schedulerSize")),
       ],
       [
         Row(
@@ -206,16 +170,43 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     return sections[section].count
   }
 
+  @objc func textFieldDidChange(_ textField: UITextField) {
+    if let indexPath = cellViews.first(where: { $0.value == textField })?.key {
+      let row = sections[indexPath.section][indexPath.row]
+      if case .textField(_, _, let saveIn, _) = row.type {
+        UserDefaults.standard.set(textField.text, forKey: saveIn)
+      }
+    }
+  }
+
+  @objc func toggleDidChange(_ toggle: UISwitch) {
+    if let indexPath = cellViews.first(where: { $0.value == toggle })?.key {
+      let row = sections[indexPath.section][indexPath.row]
+      if case .toggleSwitch(_, let saveIn, _) = row.type {
+        UserDefaults.standard.set(toggle.isOn, forKey: saveIn)
+      }
+    }
+  }
+
+  @objc func sliderDidChange(_ slider: UISlider) {
+    if let indexPath = cellViews.first(where: { $0.value == slider })?.key {
+      let row = sections[indexPath.section][indexPath.row]
+      if case .slider(_, _, _, let saveIn, _) = row.type {
+        UserDefaults.standard.set(slider.value, forKey: saveIn)
+      }
+    }
+  }
+
   override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath)
     -> UITableViewCell
   {
     let row = sections[indexPath.section][indexPath.row]
     let cell = UITableViewCell()
     switch row.type {
-    case .textField(let placeholder, let defaultValue, let keyboardType):
+    case .textField(let placeholder, let keyboardType, let saveIn, let defaultValue):
       let textField = UITextField()
       textField.placeholder = placeholder
-      textField.text = defaultValue
+      textField.text = defaultValue ?? UserDefaults.standard.string(forKey: saveIn)
       textField.keyboardType = keyboardType
       textField.translatesAutoresizingMaskIntoConstraints = false
       cell.contentView.addSubview(textField)
@@ -227,9 +218,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         textField.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
       ])
       cellViews[indexPath] = textField
-    case .toggleSwitch(let label, let defaultValue):
+      textField.addTarget(
+        self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+    case .toggleSwitch(let label, let saveIn, let defaultValue):
       let toggleSwitch = UISwitch()
-      toggleSwitch.isOn = defaultValue
+      toggleSwitch.isOn = defaultValue ?? UserDefaults.standard.bool(forKey: saveIn)
       toggleSwitch.translatesAutoresizingMaskIntoConstraints = false
       cell.textLabel?.text = label
       cell.contentView.addSubview(toggleSwitch)
@@ -239,6 +232,8 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         toggleSwitch.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
       ])
       cellViews[indexPath] = toggleSwitch
+      toggleSwitch.addTarget(
+        self, action: #selector(toggleDidChange(_:)), for: .valueChanged)
     case .button(let label, let action):
       cell.textLabel?.text = label
       cell.textLabel?.textColor = view.tintColor
@@ -317,11 +312,11 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         textField.bottomAnchor.constraint(equalTo: cell.contentView.bottomAnchor),
       ])
       cellViews[indexPath] = textField
-    case .slider(let label, let defaultValue, let min, let max):
+    case .slider(let label, let min, let max, let saveIn, let defaultValue):
       let slider = UISlider()
       slider.minimumValue = min
       slider.maximumValue = max
-      slider.value = defaultValue
+      slider.value = defaultValue ?? UserDefaults.standard.float(forKey: saveIn)
       slider.translatesAutoresizingMaskIntoConstraints = false
 
       let dynamicLabel = UILabel()
@@ -343,6 +338,8 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
       ])
 
       cellViews[indexPath] = slider
+      slider.addTarget(
+        self, action: #selector(sliderDidChange(_:)), for: .valueChanged)
     }
     return cell
   }
@@ -468,11 +465,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let fieldTransparentSwitch = cellViews[IndexPath(row: 2, section: 1)] as? UISwitch
     let detectAprilTagsSwitch = cellViews[IndexPath(row: 3, section: 1)] as? UISwitch
 
-    UserDefaults.standard.set(detectAprilTagsSwitch?.isOn, forKey: "detectAprilTags")
-
     controller.shouldDetectAprilTags = detectAprilTagsSwitch?.isOn ?? false
-    UserDefaults.standard.set(fieldVisibleSwitch?.isOn, forKey: "fieldVisible")
-    UserDefaults.standard.set(fieldTransparentSwitch?.isOn, forKey: "fieldTransparent")
 
     // Make field visible or invisible without affecting child nodes
     fieldNode.isHidden = !(fieldVisibleSwitch?.isOn ?? false)
@@ -521,10 +514,6 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let schedulerHeightSlider = cellViews[IndexPath(row: 1, section: 4)] as? UISlider
     let schedulerSizeSlider = cellViews[IndexPath(row: 2, section: 4)] as? UISlider
 
-    UserDefaults.standard.set(schedulerVisibleSwitch?.isOn ?? true, forKey: "schedulerVisible")
-    UserDefaults.standard.set(schedulerHeightSlider?.value ?? 3, forKey: "schedulerHeight")
-    UserDefaults.standard.set(schedulerSizeSlider?.value ?? 0.25, forKey: "schedulerSize")
-
     controller.scheduler.height = schedulerHeightSlider?.value ?? 3
     controller.scheduler.node.position.y =
       controller.sceneView.fieldNode.position.y
@@ -535,13 +524,6 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     controller.scheduler.regenImage()
 
     controller.scheduler.node.isHidden = !(schedulerVisibleSwitch?.isOn ?? true)
-
-    UserDefaults.standard.set(teamNumberTextField?.text, forKey: "teamNumber")
-    UserDefaults.standard.set(ipTextField?.text, forKey: "ip")
-    UserDefaults.standard.set(portTextField?.text, forKey: "port")
-    UserDefaults.standard.set(robotKeyTextField?.text, forKey: "robotKey")
-    UserDefaults.standard.set(trajectoryKeyTextField?.text, forKey: "trajectoryKey")
-    UserDefaults.standard.set(manualAddressSwitch?.isOn, forKey: "manualAddress")
 
     UserDefaults.standard.set(customRobotSelected, forKey: "customRobotSelected")
 

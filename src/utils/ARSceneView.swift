@@ -212,10 +212,15 @@ class ARSceneView: ARSCNView {
     var transform: CGAffineTransform
 
     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
-      if windowScene.interfaceOrientation.isPortrait {
+      switch windowScene.interfaceOrientation {
+      case .portrait:
         transform = CGAffineTransform(rotationAngle: CGFloat.pi / 2)
-      } else {
+      case .landscapeLeft:
         transform = CGAffineTransform(rotationAngle: 0)
+      case .landscapeRight:
+        transform = CGAffineTransform(rotationAngle: CGFloat.pi)
+      default:
+        transform = CGAffineTransform(rotationAngle: CGFloat.pi / 2)
       }
     } else {
       transform = CGAffineTransform(rotationAngle: CGFloat.pi / 2)
