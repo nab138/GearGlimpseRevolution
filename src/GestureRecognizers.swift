@@ -46,6 +46,7 @@ extension RootViewController {
       result.worldTransform.columns.3.z)
     sceneView.fieldNode.position = position
     sceneView.updateRobotNodeTransform()
+    sceneView.updateTrajectoryTransform()
 
     scheduler.node.position = SCNVector3(
       position.x, position.y + scheduler.height * sceneView.fieldNode.scale.y, position.z)
@@ -53,6 +54,8 @@ extension RootViewController {
     if !hasPlacedField {
       sceneView.scene.rootNode.addChildNode(sceneView.fieldNode)
       hasPlacedField = true
+      sceneView.hasPlacedField = true
+      sceneView.trajectoryNode?.isHidden = false
       sceneView.curContainerDummyNode?.isHidden = false
       sceneView.scene.rootNode.addChildNode(scheduler.node)
     }
@@ -64,6 +67,7 @@ extension RootViewController {
     sceneView.fieldNode.eulerAngles.y -= rotation
     sender.rotation = 0.0
     sceneView.updateRobotNodeTransform()
+    sceneView.updateTrajectoryTransform()
   }
 
   @objc func handlePinch(sender: UIPinchGestureRecognizer) {
@@ -81,6 +85,7 @@ extension RootViewController {
 
     sender.scale = 1.0
     sceneView.updateRobotNodeTransform()
+    sceneView.updateTrajectoryTransform()
   }
 
   @objc func openConfig(sender: UITapGestureRecognizer) {

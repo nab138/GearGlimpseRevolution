@@ -91,6 +91,7 @@ class NetworkTablesHandler {
 
     if trajectorySubID != nil {
       client.unsubscribe(subID: trajectorySubID!)
+      sceneView.trajectoryNode?.removeFromParentNode()
     }
 
     // Subscribe to robot position updates
@@ -122,7 +123,7 @@ class NetworkTablesHandler {
           }
           // Draw a line between each point in the sceneView
           self.sceneView?.drawTrajectory(points: positions)
-        }, periodic: 0.1)
+        }, periodic: 0.1, all: true)
     }
   }
 

@@ -49,6 +49,10 @@ class ARSceneView: ARSCNView {
 
   var imageView: UIImageView?
 
+  var trajectoryNode: SCNLineNode?
+
+  var hasPlacedField = false
+
   func loadModelFromResources(_ name: String) -> SCNNode? {
     let url = Bundle.main.url(forResource: name, withExtension: "usdz")!
     return loadModelFromURL(url)
@@ -113,6 +117,43 @@ class ARSceneView: ARSCNView {
     }
   }
 
+  func updateTrajectoryTransform() {
+    if let trajectoryNode = trajectoryNode {
+      trajectoryNode.position = fieldNode.position
+      trajectoryNode.scale = fieldNode.scale
+      trajectoryNode.eulerAngles = fieldNode.eulerAngles
+    }
+  }
+
+  func drawTrajectory(points: [SCNVector3]) {
+    guard points.count > 1 else { return }
+
+    if trajectoryNode != nil {
+      trajectoryNode?.removeFromParentNode()
+    }
+
+    if fieldNode != nil {
+      trajectoryNode = SCNLineNode(with: points, radius: 0.04)
+      trajectoryNode?.geometry?.firstMaterial?.diffuse.contents = UIColor.yellow
+      trajectoryNode?.isHidden = !hasPlacedField
+
+      scene.rootNode.addChildNode(trajectoryNode!)
+
+      updateTrajectoryTransform()
+    }
+  }
+
+  @objc func handleOrientationChange() {
+    DispatchQueue.main.async {
+      self.updateDetectedImageLayerFrame()
+    }
+  }
+
+  func updateDetectedImageLayerFrame() {
+    guard let detectedImageLayer = self.detectedImageLayer else { return }
+    detectedImageLayer.frame = self.bounds
+  }
+
   func detectAprilTagsInScene(completion: @escaping (Bool) -> Void) {
     autoreleasepool {
       guard let uiImage = self.imageFrom(), let currentFrame = self.session.currentFrame else {
@@ -136,6 +177,9 @@ class ARSceneView: ARSCNView {
 
       DispatchQueue.main.async {
         if self.detectedImageLayer == nil {
+          NotificationCenter.default.addObserver(
+            self, selector: #selector(self.handleOrientationChange),
+            name: UIDevice.orientationDidChangeNotification, object: nil)
           self.detectedImageLayer = CALayer()
           self.detectedImageLayer!.frame = self.bounds
           self.detectedImageLayer!.contentsGravity = .resizeAspectFill
@@ -144,50 +188,9 @@ class ARSceneView: ARSCNView {
         }
         self.detectedImageLayer!.contents = detectedImage.cgImage
         self.detectedImageLayer!.isHidden = false
+        self.updateDetectedImageLayerFrame()
         completion(true)
       }
-    }
-  }
-
-  func drawTrajectory(points: [SCNVector3]) {
-    NSLog("Drawing trajectory with \(points.count) points. First point: \(points.first!)")
-    guard points.count > 1 else { return }
-
-    for i in 0..<points.count - 1 {
-      let startPoint = points[i]
-      let endPoint = points[i + 1]
-
-      // Calculate the distance between points
-      let distance = SCNVector3Distance(startPoint: startPoint, endPoint: endPoint)
-
-      // Create a cylinder with the distance as the height
-      let cylinder = SCNCylinder(radius: 0.005, height: CGFloat(distance))
-      cylinder.radialSegmentCount = 6  // Makes the cylinder look more like a line
-      cylinder.firstMaterial?.diffuse.contents = UIColor.red  // Set color
-
-      // Create a node for the cylinder
-      let cylinderNode = SCNNode(geometry: cylinder)
-
-      // Calculate midpoint for positioning
-      let midPoint = SCNVector3(
-        x: (startPoint.x + endPoint.x) / 2,
-        y: (startPoint.y + endPoint.y) / 2,
-        z: (startPoint.z + endPoint.z) / 2)
-      cylinderNode.position = midPoint
-
-      // Calculate the angle between the points
-      let dx = endPoint.x - startPoint.x
-      let dy = endPoint.y - startPoint.y
-      let dz = endPoint.z - startPoint.z
-      let angle = atan2(dy, sqrt(dx * dx + dz * dz))
-
-      // Rotate the cylinder to align with the two points
-      cylinderNode.eulerAngles.x = Float.pi / 2  // Adjust for cylinder's default orientation
-      cylinderNode.eulerAngles.y = 0
-      cylinderNode.eulerAngles.z = -angle
-
-      // Add the cylinder to the fieldNode
-      fieldNode.addChildNode(cylinderNode)
     }
   }
 
@@ -206,7 +209,18 @@ class ARSceneView: ARSCNView {
     let pixelBuffer = currentFrame.capturedImage
     let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
 
-    var transform = CGAffineTransform(rotationAngle: CGFloat.pi / 2)
+    var transform: CGAffineTransform
+
+    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+      if windowScene.interfaceOrientation.isPortrait {
+        transform = CGAffineTransform(rotationAngle: CGFloat.pi / 2)
+      } else {
+        transform = CGAffineTransform(rotationAngle: 0)
+      }
+    } else {
+      transform = CGAffineTransform(rotationAngle: CGFloat.pi / 2)
+    }
+
     transform = transform.scaledBy(x: -1, y: -1)
 
     let transformedCIImage = ciImage.transformed(by: transform)

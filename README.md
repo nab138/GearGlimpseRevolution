@@ -46,8 +46,9 @@ Features that are being worked on. Features with a checkmark are in a working st
 
 - [x] AprilTag Detector
 - [x] Command Scheduler Display
-- [ ] Trajectory Rendering
+- [x] Trajectory Rendering
 - [ ] Alignment with real field via AprilTags
+- [ ] FMS state info display (enabled, match time, etc)
 
 ## Planned Features (in no particular order)
 
