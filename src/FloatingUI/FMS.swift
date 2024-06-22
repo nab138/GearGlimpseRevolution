@@ -168,7 +168,7 @@ class FMS {
           }
           
         }
-      }, periodic: 0.1, all: true)
+      }, periodic: 0.09, all: true)
 
     checkForStationAllianceUpdates()
   }
