@@ -35,14 +35,16 @@ If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/
 ## Current Features
 
 - [x] Basic field placement
-- [x] Networktables support
+- [x] Field Scaling & Rotation
+- [x] Transparent/Invisible Field
+- [x] Networktables support for robot position (Sim or real robot)
 - [x] Robot switching
 - [x] Custom robot import
-- [x] Transparent/Invisible Field
+- [x] Built-in configuration options (long press to access)
 
 ## In progress features
 
-Features that are being worked on. Features with a checkmark are in a working state, but aren't included in the latest release yet.
+Features that are being worked on. Features with a checkmark are in a working state, but aren't included in the latest release yet and may not be stable.
 
 - [x] AprilTag Detector
 - [x] Command Scheduler Display
@@ -55,3 +57,16 @@ Features that are being worked on. Features with a checkmark are in a working st
 - [ ] Field Switcher
 - [ ] Field Element Placement
 - [ ] Mechanism Rendering (maybe)
+
+## Credits
+
+- [2024 Field Model](https://cad.onshape.com/documents/dcbe49ce579f6342435bc298/w/b93673f5b2ec9c9bdcfec487)
+- [2024 KitBot Model](https://firstfrc.blob.core.windows.net/frc2024/KitBot/KitBot%20CAD%20and%20Drawings.zip)
+- [ViSP (for apriltags)](https://visp.inria.fr/)
+- [ViSP example project (for apriltag overlays)](https://github.com/lagadic/visp/tree/master/tutorial/ios/AprilTagLiveCamera)
+
+Theos does not currently support installing spm packages/pods, so the following libraries are part of the source tree but were NOT written by me:
+
+- [Starscream (websockets)](https://github.com/daltoniam/Starscream)
+- [SwiftMsgPack](https://github.com/malcommac/SwiftMsgPack)
+- [SceneKit-SCNLine](https://github.com/maxxfrazer/SceneKit-SCNLine)
