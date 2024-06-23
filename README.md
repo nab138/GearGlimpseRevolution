@@ -11,7 +11,7 @@ FRC AR Tools for iOS!
   <img src="images/Image4.png" width="200" />
 </p>
 
-[<img src="images/Altstore.png" width="200px">](altstore://source?url=https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/AltstoreSource.json)
+[<img src="images/Altstore.png" width="200px">](https://tinyurl.com/gearglimpsesource)
 
 Powered by [theos](https://theos.dev)
 
