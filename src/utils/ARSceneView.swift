@@ -38,6 +38,7 @@ struct Robot {
 
 class ARSceneView: ARSCNView {
   var fieldNode: SCNNode!
+  var floatingUI: FloatingUINode!
   var curDummyNode: SCNNode?
   var curContainerDummyNode: SCNNode?
   var curRobotNode: SCNNode?
@@ -52,6 +53,8 @@ class ARSceneView: ARSCNView {
   var trajectoryNode: SCNLineNode?
 
   var hasPlacedField = false
+
+  var apriltagID: Int32 = -1
 
   func loadModelFromResources(_ name: String) -> SCNNode? {
     let url = Bundle.main.url(forResource: name, withExtension: "usdz")!
@@ -162,7 +165,7 @@ class ARSceneView: ARSCNView {
       }
       self.detector.detectAprilTag(
         uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x),
-        py: Float(currentFrame.camera.intrinsics.columns.1.y), tagId: 3
+        py: Float(currentFrame.camera.intrinsics.columns.1.y), tagId: self.apriltagID
       ) { [weak self] detectedImage, x, y, z in
         guard detectedImage != nil, let self = self else {
           if !(self!.detectedImageLayer?.isHidden ?? false) {
@@ -178,12 +181,20 @@ class ARSceneView: ARSCNView {
         if abs(Double(x) + 1) > eps && abs(Double(y) + 1) > eps && abs(Double(z) + 1) > eps {
           let cameraTransform = currentFrame.camera.transform
 
-          // ViSP coordinates relative to the camera
+          // ViSP coordinates are relative to camera
+          // I have no clue why its y, x, -z but it works so no touchy por favor
           let cameraRelativePosition = simd_float4(y, x, -z, 1)
           let worldPosition = simd_mul(cameraTransform, cameraRelativePosition)
 
           if self.fieldNode != nil {
             self.fieldNode.position = SCNVector3(worldPosition.x, worldPosition.y, worldPosition.z)
+            self.updateRobotNodeTransform()
+            self.updateTrajectoryTransform()
+            self.floatingUI.node.position = SCNVector3(
+              self.fieldNode.position.x,
+              self.fieldNode.position.y + self.floatingUI.height * self.fieldNode.scale.y,
+              self.fieldNode.position.z
+            )
           }
         }
 

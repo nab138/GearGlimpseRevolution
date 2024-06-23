@@ -53,13 +53,17 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         Row(type: .toggleSwitch(label: "Manual Address", saveIn: "manualAddress")),
       ],
       [
+        Row(type: .textField(placeholder: "Trajectory NT Key", saveIn: "trajectoryKey")),
         Row(
           type: .button(
             label: "Set to full size", action: { self.fieldNode.scale = SCNVector3(1, 1, 1) })),
         Row(type: .toggleSwitch(label: "Visible", saveIn: "fieldVisible")),
         Row(type: .toggleSwitch(label: "Transparent", saveIn: "fieldTransparent")),
         Row(type: .toggleSwitch(label: "Detect AprilTags", saveIn: "detectAprilTags")),
-        Row(type: .textField(placeholder: "Trajectory NT Key", saveIn: "trajectoryKey")),
+        Row(
+          type: .textField(
+            placeholder: "AprilTag ID to align with", keyboardType: .numberPad, saveIn: "apriltagID"
+          )),
       ],
       [
         Row(type: .textField(placeholder: "Robot NT Key", saveIn: "robotKey")),
@@ -454,7 +458,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let portTextField = cellViews[IndexPath(row: 2, section: 0)] as? UITextField
     let manualAddressSwitch = cellViews[IndexPath(row: 3, section: 0)] as? UISwitch
     let robotKeyTextField = cellViews[IndexPath(row: 0, section: 2)] as? UITextField
-    let trajectoryKeyTextField = cellViews[IndexPath(row: 4, section: 1)] as? UITextField
+    let trajectoryKeyTextField = cellViews[IndexPath(row: 0, section: 1)] as? UITextField
 
     if manualAddressSwitch?.isOn ?? false {
       NTHandler.ip = ipTextField?.text
@@ -462,11 +466,13 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
       NTHandler.ip = "roborio-" + (teamNumberTextField?.text ?? "") + "-frc.local"
     }
 
-    let fieldVisibleSwitch = cellViews[IndexPath(row: 1, section: 1)] as? UISwitch
-    let fieldTransparentSwitch = cellViews[IndexPath(row: 2, section: 1)] as? UISwitch
-    let detectAprilTagsSwitch = cellViews[IndexPath(row: 3, section: 1)] as? UISwitch
+    let fieldVisibleSwitch = cellViews[IndexPath(row: 2, section: 1)] as? UISwitch
+    let fieldTransparentSwitch = cellViews[IndexPath(row: 3, section: 1)] as? UISwitch
+    let detectAprilTagsSwitch = cellViews[IndexPath(row: 4, section: 1)] as? UISwitch
+    let apriltagIDTextField = cellViews[IndexPath(row: 5, section: 1)] as? UITextField
 
     controller.shouldDetectAprilTags = detectAprilTagsSwitch?.isOn ?? false
+    controller.sceneView.apriltagID = Int32(apriltagIDTextField?.text ?? "-1") ?? -1
 
     // Make field visible or invisible without affecting child nodes
     fieldNode.isHidden = !(fieldVisibleSwitch?.isOn ?? false)
@@ -516,22 +522,23 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let uiHeightSlider = cellViews[IndexPath(row: 2, section: 4)] as? UISlider
     let uiSizeSlider = cellViews[IndexPath(row: 3, section: 4)] as? UISlider
 
-    controller.floatingUI.height = uiHeightSlider?.value ?? 3
-    controller.floatingUI.node.position.y =
+    controller.sceneView.floatingUI.height = uiHeightSlider?.value ?? 3
+    controller.sceneView.floatingUI.node.position.y =
       controller.sceneView.fieldNode.position.y
-      + (controller.floatingUI.height * controller.sceneView.fieldNode.scale.y)
+      + (controller.sceneView.floatingUI.height * controller.sceneView.fieldNode.scale.y)
 
     let newSize = uiSizeSlider?.value ?? 0.25
-    controller.floatingUI.scheduler.planeSize = newSize
-    controller.floatingUI.scheduler.regenImage()
+    controller.sceneView.floatingUI.scheduler.planeSize = newSize
+    controller.sceneView.floatingUI.scheduler.regenImage()
 
-    controller.floatingUI.fms.planeSize = newSize
-    controller.floatingUI.fms.regenImage()
+    controller.sceneView.floatingUI.fms.planeSize = newSize
+    controller.sceneView.floatingUI.fms.regenImage()
 
-    controller.floatingUI.scheduler.node.isHidden = !(schedulerVisibleSwitch?.isOn ?? true)
-    controller.floatingUI.fms.node.isHidden = !(fmsVisibleSwitch?.isOn ?? true)
+    controller.sceneView.floatingUI.scheduler.node.isHidden =
+      !(schedulerVisibleSwitch?.isOn ?? true)
+    controller.sceneView.floatingUI.fms.node.isHidden = !(fmsVisibleSwitch?.isOn ?? true)
 
-    controller.floatingUI.adjustPositionsBasedOnHidden()
+    controller.sceneView.floatingUI.adjustPositionsBasedOnHidden()
 
     UserDefaults.standard.set(customRobotSelected, forKey: "customRobotSelected")
 

@@ -29,7 +29,6 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
   var isDetectingAprilTags = false
 
   // Command Scheduler
-  var floatingUI: FloatingUINode!
 
   override func loadView() {
     super.loadView()
@@ -105,7 +104,7 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
       ])
     }
 
-    floatingUI = FloatingUINode(scene: sceneView)
+    sceneView.floatingUI = FloatingUINode(scene: sceneView)
   }
 
   override func viewDidLoad() {
@@ -137,9 +136,9 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     // Attempts a connection with the saved connection info
     NTHandler.connect()
 
-    floatingUI.scheduler.subscribeToCommandScheduler(
+    sceneView.floatingUI.scheduler.subscribeToCommandScheduler(
       client: NTHandler.client, key: "/SmartDashboard/Scheduler")
-    floatingUI.fms.subscribeToFMS(client: NTHandler.client)
+    sceneView.floatingUI.fms.subscribeToFMS(client: NTHandler.client)
   }
 
   override func viewWillDisappear(_ animated: Bool) {

@@ -14,16 +14,19 @@ extension RootViewController {
     if UserDefaults.standard.object(forKey: "schedulerHeight") == nil {
       UserDefaults.standard.set(3, forKey: "schedulerHeight")
     }
-    floatingUI.height = UserDefaults.standard.float(forKey: "schedulerHeight")
+    sceneView.floatingUI.height = UserDefaults.standard.float(forKey: "schedulerHeight")
     if UserDefaults.standard.object(forKey: "schedulerSize") == nil {
       UserDefaults.standard.set(0.25, forKey: "schedulerSize")
     }
-    floatingUI.size = UserDefaults.standard.float(forKey: "schedulerSize")
+    sceneView.floatingUI.size = UserDefaults.standard.float(forKey: "schedulerSize")
 
     sceneView.fieldNode.isHidden = !(UserDefaults.standard.bool(forKey: "fieldVisible"))
     sceneView.fieldNode.opacity = UserDefaults.standard.bool(forKey: "fieldTransparent") ? 0.5 : 1.0
 
     shouldDetectAprilTags = UserDefaults.standard.bool(forKey: "detectAprilTags")
+    if UserDefaults.standard.object(forKey: "apriltagID") != nil {
+      sceneView.apriltagID = Int32(UserDefaults.standard.integer(forKey: "apriltagID"))
+    }
 
     // Load the robot, it should be relative to the field. 0,0 should be the center of the field
     if !UserDefaults.standard.bool(forKey: "customRobotSelected") {

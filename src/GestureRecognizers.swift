@@ -48,8 +48,9 @@ extension RootViewController {
     sceneView.updateRobotNodeTransform()
     sceneView.updateTrajectoryTransform()
 
-    floatingUI.node.position = SCNVector3(
-      position.x, position.y + floatingUI.height * sceneView.fieldNode.scale.y, position.z)
+    sceneView.floatingUI.node.position = SCNVector3(
+      position.x, position.y + sceneView.floatingUI.height * sceneView.fieldNode.scale.y, position.z
+    )
 
     if !hasPlacedField {
       sceneView.scene.rootNode.addChildNode(sceneView.fieldNode)
@@ -57,10 +58,10 @@ extension RootViewController {
       sceneView.hasPlacedField = true
       sceneView.trajectoryNode?.isHidden = false
       sceneView.curContainerDummyNode?.isHidden = false
-      floatingUI.node.addChildNode(floatingUI.scheduler.node)
-      floatingUI.node.addChildNode(floatingUI.fms.node)
-      sceneView.scene.rootNode.addChildNode(floatingUI.node)
-      floatingUI.adjustPositionsBasedOnHidden()
+      sceneView.floatingUI.node.addChildNode(sceneView.floatingUI.scheduler.node)
+      sceneView.floatingUI.node.addChildNode(sceneView.floatingUI.fms.node)
+      sceneView.scene.rootNode.addChildNode(sceneView.floatingUI.node)
+      sceneView.floatingUI.adjustPositionsBasedOnHidden()
     }
   }
 
@@ -72,7 +73,7 @@ extension RootViewController {
     sceneView.updateRobotNodeTransform()
     sceneView.updateTrajectoryTransform()
 
-    floatingUI.node.eulerAngles.y = sceneView.fieldNode.eulerAngles.y
+    sceneView.floatingUI.node.eulerAngles.y = sceneView.fieldNode.eulerAngles.y
   }
 
   @objc func handlePinch(sender: UIPinchGestureRecognizer) {
@@ -81,13 +82,13 @@ extension RootViewController {
       sceneView.fieldNode.scale.x * scale, sceneView.fieldNode.scale.y * scale,
       sceneView.fieldNode.scale.z * scale)
 
-    floatingUI.node.scale = SCNVector3(
-      floatingUI.node.scale.x * scale, floatingUI.node.scale.y * scale,
-      floatingUI.node.scale.z * scale
+    sceneView.floatingUI.node.scale = SCNVector3(
+      sceneView.floatingUI.node.scale.x * scale, sceneView.floatingUI.node.scale.y * scale,
+      sceneView.floatingUI.node.scale.z * scale
     )
 
-    floatingUI.node.position.y =
-      sceneView.fieldNode.position.y + (floatingUI.height * sceneView.fieldNode.scale.y)
+    sceneView.floatingUI.node.position.y =
+      sceneView.fieldNode.position.y + (sceneView.floatingUI.height * sceneView.fieldNode.scale.y)
 
     sender.scale = 1.0
     sceneView.updateRobotNodeTransform()
