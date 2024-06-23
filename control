@@ -6,4 +6,4 @@ Description: iOS AR FRC Tools
 Maintainer: nab138
 Author: nab138
 Section: Utilities
-Depends: firmware (>= 12.2) | ${LIBSWIFT}
+Depends: firmware (>= 13.0) | ${LIBSWIFT}
