@@ -162,9 +162,11 @@ class ARSceneView: ARSCNView {
       }
 
       guard
-        let detectedImage = self.detector.detectAprilTag(
+        self.detector.detectAprilTag(
           uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x),
-          py: Float(currentFrame.camera.intrinsics.columns.1.y))
+          py: Float(currentFrame.camera.intrinsics.columns.1.y)) { [weak self] detectedImage, translationVec in 
+
+          }
       else {
         if !(self.detectedImageLayer?.isHidden ?? false) {
           DispatchQueue.main.async {

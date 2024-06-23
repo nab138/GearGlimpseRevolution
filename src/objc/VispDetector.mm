@@ -7,7 +7,7 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
 
 @implementation VispDetector
 
-- (UIImage *)detectAprilTag:(UIImage *)image px:(float)px py:(float)py {
+- (void)detectAprilTag:(UIImage *)image px:(float)px py:(float)py tagId:(int)requiredTagId completion:(void (^)(UIImage * _Nullable, vpTranslationVector))completion {
 
     // make vpImage for the detection.
     vpImage<unsigned char> I = [ImageConversion vpImageGrayFromUIImage:image];
@@ -24,7 +24,7 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
     // AprilTag detections setting
     float quadDecimate = 3.0;
     int nThreads = 1;
-    double tagSize = 0.043; // meter
+    double tagSize = 0.1651; // meter
     detector.setAprilTagQuadDecimate(quadDecimate);
     detector.setAprilTagNbThreads(nThreads);
 
@@ -44,8 +44,13 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
     // if tagNums is 0, return nil.
     if (tagNums == 0) {
         UIGraphicsEndImageContext();
-        return nil;
+        completion(nil, vpTranslationVector());
+        return;
     }
+
+    BOOL tagDetected = NO;
+    vpTranslationVector detectedTrans;
+
     for (int i = 0; i < tagNums; i++) {
 
         // parameters
@@ -87,12 +92,22 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
         //CGContextRotateCTM(context, -M_PI); // Rotate -90 degrees (adjust if necessary)
         [ImageDisplay displayText:meter :0 :0 :600 :100 :[UIColor whiteColor] :[UIColor blueColor]];
         CGContextRestoreGState(context);
+
+        if (detectedTagId == requiredTagId) {
+            tagDetected = YES;
+            detectedTrans = cMo_vec[i].getTranslationVector();
+            break;
+        }
     }
 
     UIImage *overlayImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
 
-    return overlayImage;
+    if (tagDetected) {
+        completion(overlayImage, detectedTrans);
+    } else {
+        completion(overlayImage, vpTranslationVector());
+    }
 }
 
 @end
