@@ -1,4 +1,5 @@
 #import "VispDetector.h"
+#include <cstdint>
 #include <Foundation/NSObjCRuntime.h>
 #import "ImageConversion.h"
 #import "ImageDisplayWithContext.h"
@@ -7,7 +8,7 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
 
 @implementation VispDetector
 
-- (void)detectAprilTag:(UIImage *)image px:(float)px py:(float)py tagId:(int)requiredTagId completion:(void (^)(UIImage * _Nullable, vpTranslationVector))completion {
+- (void)detectAprilTag:(UIImage *)image px:(float)px py:(float)py tagId:(int)requiredTagId completion:(void (^)(UIImage * _Nullable, float x, float y, float z))completion {
 
     // make vpImage for the detection.
     vpImage<unsigned char> I = [ImageConversion vpImageGrayFromUIImage:image];
@@ -44,12 +45,13 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
     // if tagNums is 0, return nil.
     if (tagNums == 0) {
         UIGraphicsEndImageContext();
-        completion(nil, vpTranslationVector());
+        completion(nil, -1, -1 , -1);
         return;
     }
 
-    BOOL tagDetected = NO;
-    vpTranslationVector detectedTrans;
+    float detectedX = -1;
+    float detectedY = -1;
+    float detectedZ = -1;
 
     for (int i = 0; i < tagNums; i++) {
 
@@ -94,8 +96,9 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
         CGContextRestoreGState(context);
 
         if (detectedTagId == requiredTagId) {
-            tagDetected = YES;
-            detectedTrans = cMo_vec[i].getTranslationVector();
+            detectedX = trans[0];
+            detectedY = trans[1];
+            detectedZ = trans[2];
             break;
         }
     }
@@ -103,11 +106,7 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
     UIImage *overlayImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
 
-    if (tagDetected) {
-        completion(overlayImage, detectedTrans);
-    } else {
-        completion(overlayImage, vpTranslationVector());
-    }
+    completion(overlayImage, detectedX, detectedY, detectedZ);
 }
 
 @end

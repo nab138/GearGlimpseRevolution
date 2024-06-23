@@ -160,38 +160,49 @@ class ARSceneView: ARSCNView {
         completion(false)
         return
       }
-
-      guard
-        self.detector.detectAprilTag(
-          uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x),
-          py: Float(currentFrame.camera.intrinsics.columns.1.y)) { [weak self] detectedImage, translationVec in 
-
+      self.detector.detectAprilTag(
+        uiImage, px: Float(currentFrame.camera.intrinsics.columns.0.x),
+        py: Float(currentFrame.camera.intrinsics.columns.1.y), tagId: 3
+      ) { [weak self] detectedImage, x, y, z in
+        guard detectedImage != nil, let self = self else {
+          if !(self!.detectedImageLayer?.isHidden ?? false) {
+            DispatchQueue.main.async {
+              self!.detectedImageLayer?.isHidden = true
+            }
           }
-      else {
-        if !(self.detectedImageLayer?.isHidden ?? false) {
-          DispatchQueue.main.async {
-            self.detectedImageLayer?.isHidden = true
+          completion(false)
+          return
+        }
+
+        let eps = 0.0001
+        if abs(Double(x) + 1) > eps && abs(Double(y) + 1) > eps && abs(Double(z) + 1) > eps {
+          let cameraTransform = currentFrame.camera.transform
+
+          // ViSP coordinates relative to the camera
+          let cameraRelativePosition = simd_float4(y, x, -z, 1)
+          let worldPosition = simd_mul(cameraTransform, cameraRelativePosition)
+
+          if self.fieldNode != nil {
+            self.fieldNode.position = SCNVector3(worldPosition.x, worldPosition.y, worldPosition.z)
           }
         }
-        completion(false)
-        return
-      }
 
-      DispatchQueue.main.async {
-        if self.detectedImageLayer == nil {
-          NotificationCenter.default.addObserver(
-            self, selector: #selector(self.handleOrientationChange),
-            name: UIDevice.orientationDidChangeNotification, object: nil)
-          self.detectedImageLayer = CALayer()
-          self.detectedImageLayer!.frame = self.bounds
-          self.detectedImageLayer!.contentsGravity = .resizeAspectFill
-          self.detectedImageLayer!.backgroundColor = UIColor.clear.cgColor
-          self.layer.addSublayer(self.detectedImageLayer!)
+        DispatchQueue.main.async {
+          if self.detectedImageLayer == nil {
+            NotificationCenter.default.addObserver(
+              self, selector: #selector(self.handleOrientationChange),
+              name: UIDevice.orientationDidChangeNotification, object: nil)
+            self.detectedImageLayer = CALayer()
+            self.detectedImageLayer!.frame = self.bounds
+            self.detectedImageLayer!.contentsGravity = .resizeAspectFill
+            self.detectedImageLayer!.backgroundColor = UIColor.clear.cgColor
+            self.layer.addSublayer(self.detectedImageLayer!)
+          }
+          self.detectedImageLayer!.contents = detectedImage!.cgImage
+          self.detectedImageLayer!.isHidden = false
+          self.updateDetectedImageLayerFrame()
+          completion(true)
         }
-        self.detectedImageLayer!.contents = detectedImage.cgImage
-        self.detectedImageLayer!.isHidden = false
-        self.updateDetectedImageLayerFrame()
-        completion(true)
       }
     }
   }

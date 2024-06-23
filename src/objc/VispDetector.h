@@ -1,8 +1,12 @@
 #import <UIKit/UIKit.h>
-#import <visp3/core/vpTranslationVector.h>
 
 @interface VispDetector : NSObject
 
-- (void)detectAprilTag:(UIImage *)image px:(float)px py:(float)py tagId:(int)tagId completion:(void (^)(UIImage * _Nullable, vpTranslationVector))completion;
+- (void)detectAprilTag:(UIImage * _Nonnull)image 
+                    px:(float)px 
+                    py:(float)py 
+                 tagId:(int)requiredTagId 
+            completion:(void (^ _Nonnull)(UIImage * _Nullable, float x, float y, float z))completion;
 
 @end
+
