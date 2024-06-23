@@ -1,5 +1,6 @@
 {
   "name": "GearGlimpse Repository",
+  "identifier": "me.nabdev.gearglimpserepo",
   "subtitle": "FRC AR Tools for iOS",
   "description": "The official home of GearGlimpseRevolution, frc AR/XR tools for iOS.",
   "website": "https://nabdev.me",
