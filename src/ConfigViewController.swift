@@ -472,7 +472,13 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let apriltagIDTextField = cellViews[IndexPath(row: 5, section: 1)] as? UITextField
 
     controller.shouldDetectAprilTags = detectAprilTagsSwitch?.isOn ?? false
-    controller.sceneView.apriltagID = Int32(apriltagIDTextField?.text ?? "-1") ?? -1
+
+    let newTagId = Int32(apriltagIDTextField?.text ?? "-1") ?? -1
+    if newTagId != controller.sceneView.apriltagID {
+      controller.sceneView.apriltagID = newTagId
+      // Parse a json file called 2024-crescendo.json in Resources
+
+    }
 
     // Make field visible or invisible without affecting child nodes
     fieldNode.isHidden = !(fieldVisibleSwitch?.isOn ?? false)

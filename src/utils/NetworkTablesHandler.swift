@@ -2,8 +2,8 @@ import ARKit
 
 // Helper class to manage NetworkTables connection and robot position updates
 class NetworkTablesHandler {
-  let fieldCenterX: Double = 8.25
-  let fieldCenterY: Double = 4
+  static let fieldCenterX: Double = 8.2705
+  static let fieldCenterY: Double = 4.1055
 
   var client: NT4Client!
   var sceneView: ARSceneView!
@@ -100,8 +100,7 @@ class NetworkTablesHandler {
       callback: { topic, timestamp, data in
         // [x, y, rot (degrees)]
         let newPos = data as? [Double]
-        self.robotNode.position = SCNVector3(
-          -newPos![0] + self.fieldCenterX, 0, newPos![1] - self.fieldCenterY)
+        self.robotNode.position = NetworkTablesHandler.fieldToARCoords(x: newPos![0], y: newPos![1])
         self.lastPosition = self.robotNode.position
         self.robotNode.eulerAngles.y = Float(newPos![2] * .pi / 180)
         self.lastRotation = self.robotNode.eulerAngles.y
@@ -117,9 +116,7 @@ class NetworkTablesHandler {
           let points = data as? [Double]
           var positions: [SCNVector3] = []
           for i in stride(from: 0, to: points!.count, by: 3) {
-            positions.append(
-              SCNVector3(
-                -points![i] + self.fieldCenterX, 0, points![i + 1] - self.fieldCenterY))
+            positions.append(NetworkTablesHandler.fieldToARCoords(x: points![i], y: points![i + 1]))
           }
           // Draw a line between each point in the sceneView
           self.sceneView?.drawTrajectory(points: positions)
@@ -135,5 +132,11 @@ class NetworkTablesHandler {
       statusLabel.text = "NT: Disconnected"
       statusLabel.backgroundColor = UIColor.red.withAlphaComponent(0.4)
     }
+  }
+
+  // static function to convert coords
+  static func fieldToARCoords(x: Double, y: Double) -> SCNVector3 {
+    return SCNVector3(
+      -x + NetworkTablesHandler.fieldCenterX, 0, y - NetworkTablesHandler.fieldCenterY)
   }
 }

@@ -55,6 +55,7 @@ class ARSceneView: ARSCNView {
   var hasPlacedField = false
 
   var apriltagID: Int32 = -1
+  let tagParser = AprilTagParser()
 
   func loadModelFromResources(_ name: String) -> SCNNode? {
     let url = Bundle.main.url(forResource: name, withExtension: "usdz")!
@@ -187,8 +188,23 @@ class ARSceneView: ARSCNView {
           let worldPosition = simd_mul(cameraTransform, cameraRelativePosition)
 
           if self.fieldNode != nil {
-            self.fieldNode.position = SCNVector3(worldPosition.x, worldPosition.y, worldPosition.z)
-            self.updateRobotNodeTransform()
+            let tagPose = self.tagParser.getDataForTag(Int(self.apriltagID))?.pose
+            if tagPose == nil {
+              NSLog("Failed to get tag pose from json")
+              completion(false)
+              return
+            }
+            let translation = tagPose!.translation
+            var tagPosition = NetworkTablesHandler.fieldToARCoords(
+              x: translation.x, y: translation.y)
+            tagPosition.z = -Float(translation.z)
+
+            var fieldPos = SCNVector3(worldPosition.x, worldPosition.y, worldPosition.z)
+            fieldPos.x -= tagPosition.x * self.fieldNode.scale.x
+            fieldPos.y -= tagPosition.y * self.fieldNode.scale.y
+            fieldPos.z -= tagPosition.z * self.fieldNode.scale.z
+            self.fieldNode.position = fieldPos
+
             self.updateTrajectoryTransform()
             self.floatingUI.node.position = SCNVector3(
               self.fieldNode.position.x,
