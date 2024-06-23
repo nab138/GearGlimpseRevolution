@@ -16,13 +16,12 @@
       "iconURL": "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/logo.png",
       "tintColor": "#ffde59",
       "category": "utilities",
-      "screenshots": [
+      "screenshotURLs": [
         "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/images/Image1.png",
         "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/images/Image2.png",
         "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/images/Image3.png",
         "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/images/Image4.png"
       ],
-      "beta": true,
       "version": "0.0.3",
       "versionDate": "2024-06-23T02:13:00.000Z",
       "size": 60553745,
