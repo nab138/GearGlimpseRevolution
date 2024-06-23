@@ -41,16 +41,16 @@ If you add the [sideloader cli](https://github.com/Dadoum/Sideloader) to $THEOS/
 - [x] Robot switching
 - [x] Custom robot import
 - [x] Built-in configuration options (long press to access)
+- [x] AprilTag Detector (unstable, and doesn't do anything right now
+- [x] Command Scheduler Display
+- [x] FMS state info display (enabled, mode, alliance, etc)
+- [x] Trajectory Rendering
 
 ## In progress features
 
 Features that are being worked on. Features with a checkmark are in a working state, but aren't included in the latest release yet and may not be stable.
 
-- [x] AprilTag Detector
-- [x] Command Scheduler Display
-- [x] Trajectory Rendering
 - [ ] Alignment with real field via AprilTags
-- [x] FMS state info display (enabled, mode, alliance, etc)
 
 ## Planned Features (in no particular order)
 
