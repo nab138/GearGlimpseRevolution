@@ -2,7 +2,14 @@
 
 [![Build GearGlimpseRevolution](https://github.com/nab138/GearGlimpseRevolution/actions/workflows/ci.yml/badge.svg)](https://github.com/nab138/GearGlimpseRevolution/actions/workflows/ci.yml)
 
-iOS AR Frc tools!
+FRC AR Tools for iOS!
+
+<!-- Show 3 images placed next to eachother horizontally, images/Image1.png, images/Image2.png, and Images/Image3.png -->
+<p float="left">
+  <img src="images/Image1.png" width="200" />
+  <img src="images/Image2.png" width="200" />
+  <img src="images/Image3.png" width="200" />
+</p>
 
 Powered by [theos](https://theos.dev)
 
