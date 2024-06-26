@@ -1,4 +1,7 @@
 #import "VispDetector.h"
+#include "visp3/core/vpRotationMatrix.h"
+#include "visp3/core/vpRotationVector.h"
+#include "visp3/core/vpQuaternionVector.h"
 #include <cstdint>
 #include <Foundation/NSObjCRuntime.h>
 #import "ImageConversion.h"
@@ -8,7 +11,7 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
 
 @implementation VispDetector
 
-- (void)detectAprilTag:(UIImage *)image px:(float)px py:(float)py tagId:(int)requiredTagId completion:(void (^)(UIImage * _Nullable, float x, float y, float z))completion {
+- (void)detectAprilTag:(UIImage *)image px:(float)px py:(float)py tagId:(int)requiredTagId completion:(void (^)(UIImage * _Nullable, float x, float y, float z, vpRotationMatrix * _Nonnull))completion {
 
     // make vpImage for the detection.
     vpImage<unsigned char> I = [ImageConversion vpImageGrayFromUIImage:image];
@@ -59,6 +62,7 @@ vpDetectorAprilTag detector(vpDetectorAprilTag::TAG_36h11, vpDetectorAprilTag::H
         std::vector<vpImagePoint> polygon = detector.getPolygon(i);
         vpImagePoint cog = detector.getCog(i);
         vpTranslationVector trans = cMo_vec[i].getTranslationVector();
+        vpRotationMatrix    R = cMo_vec[i].getRotationMatrix();
         UIColor *mainColor = [UIColor blueColor];
         int tagLineWidth = 10;
 

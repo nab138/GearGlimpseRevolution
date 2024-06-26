@@ -12,5 +12,4 @@ GearGlimpseRevolution_FRAMEWORKS = UIKit CoreGraphics
 GearGlimpseRevolution_EXTRA_FRAMEWORKS = opencv2 visp3
 GearGlimpseRevolution_SWIFT_BRIDGING_HEADER = src/objc/VispDetector.h
 GearGlimpseRevolution_CCFLAGS = -std=c++17 -Wno-deprecated-declarations -Wno-unused-but-set-variable
-
 include $(THEOS_MAKE_PATH)/application.mk

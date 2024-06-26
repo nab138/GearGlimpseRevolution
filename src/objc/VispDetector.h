@@ -1,3 +1,5 @@
+#include <visp3/core/vpRotationMatrix.h>
+
 #import <UIKit/UIKit.h>
 
 @interface VispDetector : NSObject
@@ -6,7 +8,7 @@
                     px:(float)px 
                     py:(float)py 
                  tagId:(int)requiredTagId 
-            completion:(void (^ _Nonnull)(UIImage * _Nullable, float x, float y, float z))completion;
+            completion:(void (^ _Nonnull)(UIImage * _Nullable, float x, float y, float z, vpRotationMatrix * _Nonnull))completion;
 
 @end
 
