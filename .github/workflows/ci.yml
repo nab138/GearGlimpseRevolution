@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Theos
-        uses: Randomblock1/theos-action@main
+        uses: Randomblock1/theos-action@v1
         with:
           theos-src: "https://github.com/nab138/theos"
           # cache-dir-theos: ${{ github.workspace }}/theos
