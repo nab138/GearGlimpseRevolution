@@ -60,6 +60,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         Row(type: .toggleSwitch(label: "Transparent", saveIn: "fieldTransparent")),
         Row(type: .toggleSwitch(label: "Detect AprilTags", saveIn: "detectAprilTags")),
         Row(type: .textField(placeholder: "Trajectory NT Key", saveIn: "trajectoryKey")),
+        Row(type: .textField(placeholder: "Game Pieces NT Key", saveIn: "piecesKey")),
       ],
       [
         Row(type: .textField(placeholder: "Robot NT Key", saveIn: "robotKey")),
@@ -455,6 +456,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     let manualAddressSwitch = cellViews[IndexPath(row: 3, section: 0)] as? UISwitch
     let robotKeyTextField = cellViews[IndexPath(row: 0, section: 2)] as? UITextField
     let trajectoryKeyTextField = cellViews[IndexPath(row: 4, section: 1)] as? UITextField
+    let gamePiecesKeyTextField = cellViews[IndexPath(row: 5, section: 1)] as? UITextField
 
     if manualAddressSwitch?.isOn ?? false {
       NTHandler.ip = ipTextField?.text
@@ -475,6 +477,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
     NTHandler.port = portTextField?.text
     NTHandler.robotKey = robotKeyTextField?.text
     NTHandler.trajectoryKey = trajectoryKeyTextField?.text
+    NTHandler.gamePiecesKey = gamePiecesKeyTextField?.text
 
     let xOffsetTextField = cellViews[IndexPath(row: 1, section: 3)] as? UITextField
     let yOffsetTextField = cellViews[IndexPath(row: 2, section: 3)] as? UITextField

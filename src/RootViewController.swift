@@ -123,6 +123,13 @@ class RootViewController: UIViewController, UIGestureRecognizerDelegate, ARSessi
     sceneView.fieldNode = field
     sceneView.fieldNode.scale = SCNVector3(0.05, 0.05, 0.05)
 
+    guard let gamePiece = sceneView.loadModelFromResources("GamePiece_2024") else {
+      NSLog("Failed to load game piece model")
+      return
+    }
+    sceneView.gamePieceModel = gamePiece
+    sceneView.gamePieceModel.scale = SCNVector3(0.05, 0.05, 0.05)
+
     // Loads the saved robot and assigns a few properties from UserDefaults
     loadPrefs()
 

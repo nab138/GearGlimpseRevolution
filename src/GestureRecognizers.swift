@@ -47,6 +47,7 @@ extension RootViewController {
     sceneView.fieldNode.position = position
     sceneView.updateRobotNodeTransform()
     sceneView.updateTrajectoryTransform()
+    sceneView.updateGamePieceTransforms()
 
     floatingUI.node.position = SCNVector3(
       position.x, position.y + floatingUI.height * sceneView.fieldNode.scale.y, position.z)
@@ -71,6 +72,7 @@ extension RootViewController {
     sender.rotation = 0.0
     sceneView.updateRobotNodeTransform()
     sceneView.updateTrajectoryTransform()
+    sceneView.updateGamePieceTransforms()
 
     floatingUI.node.eulerAngles.y = sceneView.fieldNode.eulerAngles.y
   }
@@ -92,6 +94,7 @@ extension RootViewController {
     sender.scale = 1.0
     sceneView.updateRobotNodeTransform()
     sceneView.updateTrajectoryTransform()
+    sceneView.updateGamePieceTransforms()
   }
 
   @objc func openConfig(sender: UITapGestureRecognizer) {

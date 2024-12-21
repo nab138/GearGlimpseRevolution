@@ -11,11 +11,13 @@ class NetworkTablesHandler {
   var statusLabel: UILabel!
   var robotSubID: Int?
   var trajectorySubID: Int?
+  var gamePiecesSubID: Int?
 
   var ip: String?
   var port: String?
   var robotKey: String?
   var trajectoryKey: String?
+  var gamePiecesKey: String?
 
   var lastPosition: SCNVector3 = SCNVector3(0, 0, 0)
   var lastRotation: Float = 0
@@ -65,6 +67,11 @@ class NetworkTablesHandler {
     if trajectoryKey == nil {
       trajectoryKey = ""
       UserDefaults.standard.set(trajectoryKey, forKey: "trajectoryKey")
+    }
+    gamePiecesKey = UserDefaults.standard.string(forKey: "gamePiecesKey")
+    if gamePiecesKey == nil {
+      gamePiecesKey = ""
+      UserDefaults.standard.set(gamePiecesKey, forKey: "gamePiecesKey")
     }
   }
 
@@ -124,6 +131,24 @@ class NetworkTablesHandler {
           // Draw a line between each point in the sceneView
           self.sceneView?.drawTrajectory(points: positions)
         }, periodic: 0.1, all: true)
+    }
+
+    // Subscribe to game piece updates
+    if gamePiecesKey != nil && gamePiecesKey != "" {
+      _ = client.subscribe(
+        key: gamePiecesKey!,
+        callback: { topic, timestamp, data in
+          // [x, y, ignore, x, y, ignore, ...]
+          let points = data as? [Double]
+          var positions: [SCNVector3] = []
+          for i in stride(from: 0, to: points!.count, by: 3) {
+            positions.append(
+              SCNVector3(
+                -points![i] + self.fieldCenterX, 0, points![i + 1] - self.fieldCenterY))
+          }
+
+          self.sceneView?.drawGamePieces(points: positions)
+        }, periodic: 0.001, all: true)
     }
   }
 

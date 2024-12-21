@@ -38,6 +38,8 @@ struct Robot {
 
 class ARSceneView: ARSCNView {
   var fieldNode: SCNNode!
+  var gamePieceModel: SCNNode!
+  var gamePieceNodes: [SCNNode] = []
   var curDummyNode: SCNNode?
   var curContainerDummyNode: SCNNode?
   var curRobotNode: SCNNode?
@@ -142,6 +144,35 @@ class ARSceneView: ARSCNView {
       updateTrajectoryTransform()
     }
   }
+
+  func drawGamePieces(points: [SCNVector3]) {
+    if points.count < gamePieceNodes.count {
+      for i in points.count..<gamePieceNodes.count {
+        gamePieceNodes[i].removeFromParentNode()
+      }
+      gamePieceNodes = Array(gamePieceNodes.prefix(points.count))
+    }
+
+    // Place instances of the model at each location
+    for point in points {
+      let gamePieceNode = gamePieceModel.clone()
+      gamePieceNode.position = point
+      gamePieceNodes.append(gamePieceNode)
+      scene.rootNode.addChildNode(gamePieceNode)
+    }
+
+    // Update transforms
+    updateGamePieceTransforms()
+  }
+
+  func updateGamePieceTransforms() {
+    for gamePieceNode in gamePieceNodes {
+      gamePieceNode.position = fieldNode.convertPosition(gamePieceNode.position, to: nil)
+      gamePieceNode.scale = fieldNode.scale
+    }
+  }
+
+
 
   @objc func handleOrientationChange() {
     DispatchQueue.main.async {
