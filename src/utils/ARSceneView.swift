@@ -152,13 +152,18 @@ class ARSceneView: ARSCNView {
       }
       gamePieceNodes = Array(gamePieceNodes.prefix(points.count))
     }
+    if points.count > gamePieceNodes.count {
+      for i in gamePieceNodes.count..<points.count {
+        let gamePieceNode = gamePieceModel.clone()
+        gamePieceNode.position = points[i]
+        gamePieceNodes.append(gamePieceNode)
+        scene.rootNode.addChildNode(gamePieceNode)
+      }
+    }
 
     // Place instances of the model at each location
-    for point in points {
-      let gamePieceNode = gamePieceModel.clone()
-      gamePieceNode.position = point
-      gamePieceNodes.append(gamePieceNode)
-      scene.rootNode.addChildNode(gamePieceNode)
+    for i in 0..<points.count {
+      gamePieceNodes[i].position = points[i]
     }
 
     // Update transforms
