@@ -19,10 +19,11 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Theos
-        uses: nab138/theos-action@main
+        uses: Randomblock1/theos-action@main
         with:
-          cache-dir-theos: ${{ github.workspace }}/theos
-          cache-dir-sdks: ${{ github.workspace }}/theos/sdks
+          theos-src: "https://github.com/nab138/theos"
+          # cache-dir-theos: ${{ github.workspace }}/theos
+          # cache-dir-sdks: ${{ github.workspace }}/theos/sdks
 
       - name: Cache Visp3 Framework
         uses: actions/cache@v4
