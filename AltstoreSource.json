@@ -30,7 +30,7 @@
       "versions": [
         {
           "version": "0.0.4",
-          "versionDate": "2024-12-21T22:09:40.000Z",
+          "date": "2024-12-21T22:09:40.000Z",
           "size": 56509966,
           "downloadURL": "https://github.com/nab138/GearGlimpseRevolution/releases/download/v0.0.4/me.nabdev.gearglimpserev_0.0.4.ipa",
           "localizedDescription": "New Features:\r\n\r\n- Game piece visualization! Enter an NT key in settings. The game piece data should be a numeric array of Pose2ds (like [x, y, rot, x, y, rot, ...]) which can be easily done with smartdashboard.\r\n\r\n**Full Changelog**: https://github.com/nab138/GearGlimpseRevolution/compare/v0.0.3...v0.0.4",
