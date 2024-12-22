@@ -12,7 +12,7 @@
       "bundleIdentifier": "me.nabdev.gearglimpserev",
       "developerName": "nab138",
       "subtitle": "FRC AR Tools for iOS",
-      "localizedDescription": "Welcome to GearGlimpse Revolution!\nThis app provides several tools to view data from your FRC robot in Augmented/Extended Reality! \n\nYou can:\n• View your robot in ar, with or without the frc field\n• Use our preset robots or import your own\n• Connect to real robots or the simulator\n• View the command scheduler and FMS data from your robot\n• Visualize Trajectories in AR\n• Detect AprilTags (a little buggy right now, just a proof of concept)\n\nComing soon: Real field/field element overlays via apriltags...\n\nCheck out the github! https://github.com/nab138/GearGlimpseRevolution",
+      "localizedDescription": "Welcome to GearGlimpse Revolution!\nThis app provides several tools to view data from your FRC robot in Augmented/Extended Reality! \n\nYou can:\n• View your robot in ar, with or without the frc field\n• Use our preset robots or import your own\n• Connect to real robots or the simulator\n• View the command scheduler and FMS data from your robot\n• Visualize trajectories in AR\n• Visualize game pieces (notes) in AR\n• Detect AprilTags (a little buggy right now, just a proof of concept)\n\nComing soon: Real field/field element overlays via apriltags...\n\nCheck out the github! https://github.com/nab138/GearGlimpseRevolution",
       "iconURL": "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/logo.png",
       "tintColor": "#ffde59",
       "category": "utilities",
@@ -22,12 +22,20 @@
         "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/images/Image3.png",
         "https://raw.githubusercontent.com/nab138/GearGlimpseRevolution/main/images/Image4.png"
       ],
-      "version": "0.0.3",
-      "versionDate": "2024-06-23T02:13:00.000Z",
-      "size": 60553745,
-      "downloadURL": "https://github.com/nab138/GearGlimpseRevolution/releases/download/v0.0.3/me.nabdev.gearglimpserev_0.0.3.ipa",
-      "versionDescription": "This update brings some exiting new features and bug fixes, as well as laying the groundwork for exiting updates to come...\n\nNew Features:\n• View FMS Data: A little floating window, which you can customize the size and position of, will appear above the field with info about the robot's current mode, alliance, station, e-stop status, etc.\n• See the command scheduler: If you publish the command scheduler with SmartDashboard.putData(CommandScheduler.getInstance()), GearGlimpse will now visualize it in a window similar to the FMS window!\n• Trajectory display: You can specify a NT key to read trajectory data from, and it will be displayed on the 3d field.\n• Apriltag detection: Currently more of a demo then anything. It is a little unstable and doesn't serve any practical purpose yet, but it serves as groundwork for automatically aligning the GearGlimpse field with a real field or field elements.\n\nFixed Bugs:\n• When scrolling away from a field in the config value and coming back, the value would appear as the old value until the settings menu is re-opened\n• Sometimes, GearGlimpse would fail to receive NetworkTables data from topic's with an extremely low topic ID.\n• When reconnecting to NetworkTables, old subscriptions would only be applied if the app was not connected at startup\n• When closing the config view, old subscriptions were not properly cleaned up\n\nKnown Issues:\n• The app is prone to crash while running the apriltag detector (especially if the user is also connected to networktables, displaying a robot, and doing other resource intensive activities such as screen recording)\n\nFull Changelog: https://github.com/nab138/GearGlimpseRevolution/compare/v0.0.2...v0.0.3",
+      "version": "0.0.4",
+      "versionDate": "2024-12-21T22:09:40.000Z",
+      "size": 56509966,
+      "downloadURL": "https://github.com/nab138/GearGlimpseRevolution/releases/download/v0.0.4/me.nabdev.gearglimpserev_0.0.4.ipa",
+      "versionDescription": "New Features:\r\n\r\n- Game piece visualization! Enter an NT key in settings. The game piece data should be a numeric array of Pose2ds (like [x, y, rot, x, y, rot, ...]) which can be easily done with smartdashboard.\r\n\r\n**Full Changelog**: https://github.com/nab138/GearGlimpseRevolution/compare/v0.0.3...v0.0.4",
       "versions": [
+        {
+          "version": "0.0.4",
+          "versionDate": "2024-12-21T22:09:40.000Z",
+          "size": 56509966,
+          "downloadURL": "https://github.com/nab138/GearGlimpseRevolution/releases/download/v0.0.4/me.nabdev.gearglimpserev_0.0.4.ipa",
+          "localizedDescription": "New Features:\r\n\r\n- Game piece visualization! Enter an NT key in settings. The game piece data should be a numeric array of Pose2ds (like [x, y, rot, x, y, rot, ...]) which can be easily done with smartdashboard.\r\n\r\n**Full Changelog**: https://github.com/nab138/GearGlimpseRevolution/compare/v0.0.3...v0.0.4",
+          "minOSVersion": "13.0"
+        },
         {
           "version": "0.0.3",
           "date": "2024-06-23T02:13:00.000Z",
