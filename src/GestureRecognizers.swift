@@ -57,6 +57,9 @@ extension RootViewController {
       hasPlacedField = true
       sceneView.hasPlacedField = true
       sceneView.trajectoryNode?.isHidden = false
+      for node in sceneView.gamePieceNodes {
+        node.isHidden = false
+      }
       sceneView.curContainerDummyNode?.isHidden = false
       floatingUI.node.addChildNode(floatingUI.scheduler.node)
       floatingUI.node.addChildNode(floatingUI.fms.node)

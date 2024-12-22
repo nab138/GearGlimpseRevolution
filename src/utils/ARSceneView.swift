@@ -162,23 +162,20 @@ class ARSceneView: ARSCNView {
       }
     }
 
-    // Place instances of the model at each location
-    for i in 0..<points.count {
-      gamePieceNodes[i].position = points[i]
-      gamePieceNodes[i].isHidden = !hasPlacedField
-    }
-
-    // save game piece positions
     gamePiecePositions = points
 
-    // Update transforms
     updateGamePieceTransforms()
   }
 
   func updateGamePieceTransforms() {
+    guard gamePieceNodes.count == gamePiecePositions.count else {
+      NSLog("Game piece nodes and positions are not the same length")
+      return
+    }
     for i in 0..<gamePiecePositions.count {
       gamePieceNodes[i].position = fieldNode.convertPosition(gamePiecePositions[i], to: nil)
       gamePieceNodes[i].scale = fieldNode.scale
+      gamePieceNodes[i].isHidden = !hasPlacedField
     }
   }
 

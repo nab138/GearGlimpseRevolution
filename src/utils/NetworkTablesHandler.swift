@@ -104,6 +104,7 @@ class NetworkTablesHandler {
     if gamePiecesSubID != nil {
       client.unsubscribe(subID: gamePiecesSubID!)
       sceneView.gamePieceNodes.forEach { $0.removeFromParentNode() }
+      sceneView.gamePieceNodes = []
     }
 
     // Subscribe to robot position updates
