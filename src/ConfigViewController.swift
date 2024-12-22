@@ -60,7 +60,7 @@ class ConfigViewController: UITableViewController, UIDocumentPickerDelegate {
         Row(type: .toggleSwitch(label: "Transparent", saveIn: "fieldTransparent")),
         Row(type: .toggleSwitch(label: "Detect AprilTags", saveIn: "detectAprilTags")),
         Row(type: .textField(placeholder: "Trajectory NT Key", saveIn: "trajectoryKey")),
-        Row(type: .textField(placeholder: "Game Pieces NT Key", saveIn: "piecesKey")),
+        Row(type: .textField(placeholder: "Game Pieces NT Key", saveIn: "gamePiecesKey")),
       ],
       [
         Row(type: .textField(placeholder: "Robot NT Key", saveIn: "robotKey")),

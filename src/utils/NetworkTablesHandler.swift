@@ -101,6 +101,11 @@ class NetworkTablesHandler {
       sceneView.trajectoryNode?.removeFromParentNode()
     }
 
+    if gamePiecesSubID != nil {
+      client.unsubscribe(subID: gamePiecesSubID!)
+      sceneView.gamePieceNodes.forEach { $0.removeFromParentNode() }
+    }
+
     // Subscribe to robot position updates
     robotSubID = client.subscribe(
       key: robotKey!,
@@ -135,7 +140,7 @@ class NetworkTablesHandler {
 
     // Subscribe to game piece updates
     if gamePiecesKey != nil && gamePiecesKey != "" {
-      _ = client.subscribe(
+      gamePiecesSubID = client.subscribe(
         key: gamePiecesKey!,
         callback: { topic, timestamp, data in
           // [x, y, ignore, x, y, ignore, ...]
@@ -148,7 +153,7 @@ class NetworkTablesHandler {
           }
 
           self.sceneView?.drawGamePieces(points: positions)
-        }, periodic: 0.001, all: true)
+        }, periodic: 0.01)
     }
   }
 

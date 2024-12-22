@@ -40,6 +40,7 @@ class ARSceneView: ARSCNView {
   var fieldNode: SCNNode!
   var gamePieceModel: SCNNode!
   var gamePieceNodes: [SCNNode] = []
+  var gamePiecePositions: [SCNVector3] = []
   var curDummyNode: SCNNode?
   var curContainerDummyNode: SCNNode?
   var curRobotNode: SCNNode?
@@ -164,16 +165,20 @@ class ARSceneView: ARSCNView {
     // Place instances of the model at each location
     for i in 0..<points.count {
       gamePieceNodes[i].position = points[i]
+      gamePieceNodes[i].isHidden = !hasPlacedField
     }
+
+    // save game piece positions
+    gamePiecePositions = points
 
     // Update transforms
     updateGamePieceTransforms()
   }
 
   func updateGamePieceTransforms() {
-    for gamePieceNode in gamePieceNodes {
-      gamePieceNode.position = fieldNode.convertPosition(gamePieceNode.position, to: nil)
-      gamePieceNode.scale = fieldNode.scale
+    for i in 0..<gamePiecePositions.count {
+      gamePieceNodes[i].position = fieldNode.convertPosition(gamePiecePositions[i], to: nil)
+      gamePieceNodes[i].scale = fieldNode.scale
     }
   }
 
